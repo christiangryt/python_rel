@@ -1,0 +1,10 @@
+Make Sudoku more flexible, being able to choose different board sizes.
+
+Refactor to oberserver/oberserved layout
+
+	- Resource for python oberserver code	
+		- https://refactoring.guru/design-patterns/observer/python/example
+
+In board class:
+	
+	- Pass draw location to curses, speed ut, not needing to redraw entire boar
