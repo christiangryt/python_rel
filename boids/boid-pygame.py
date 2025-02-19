@@ -11,7 +11,7 @@ size = width, height = 1020, 840# klink måte å definere flere varibler
 spdVek = pygame.math.Vector2([3,1])
 bb = []
 
-for i in range (1, 40):
+for i in range (1, 30):
 
     pos1 = r.randint(40, width - 40)
     pos2 = r.randint(40, height- 40)
@@ -23,7 +23,7 @@ for i in range (1, 40):
     pos = pygame.math.Vector2(pos1, pos2)
 
     # ny = boid.boid(pygame.math.Vector2(1,2), [width / (i + 10), height / (i + 10)], 150, 0.02, 100, (0,255,0))
-    ny = boid.boid(spd, pos, 150, 0.01, 100, (0,255,0))
+    ny = boid.boid(spd, pos, 150, 0.01, (0,255,0), 30)
 
 
     bb.append(ny)
@@ -99,11 +99,11 @@ while True:
                 
                 if prov % 2 == 1:
 
-                    test_retning.rotate_rad_ip(r.randint(0, 1) * b.rotmen * prov)
+                    test_retning.rotate_rad_ip(r.random() * b.rotmen * prov)
                 
                 else:
 
-                    test_retning.rotate_rad_ip(r.randint(0,1) * b.rotmen * -prov)
+                    test_retning.rotate_rad_ip(r.random() * b.rotmen * -prov)
 
                 # roterer en så en annen ved mod
                 # roter speed og prøv igjen
@@ -115,6 +115,11 @@ while True:
 
                 b.speed = test_retning
                 break
+
+        for bbb in boid.boid.instanser:
+
+            ut = bbb.seperation()
+            # bbb.speed *= ut
 
         pygame.draw.circle(screen, b.color, b.position, b.radius, 0)
 
