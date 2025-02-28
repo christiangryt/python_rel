@@ -11,19 +11,19 @@ size = width, height = 1020, 840# klink måte å definere flere varibler
 spdVek = pygame.math.Vector2([3,1])
 bb = []
 
-for i in range (1, 30):
+for i in range (1, 40):
 
     pos1 = r.randint(40, width - 40)
     pos2 = r.randint(40, height- 40)
 
     spd = pygame.math.Vector2(1,2)
-    spd.rotate_ip_rad(np.floor(r.randint(0, np.floor(2*np.pi))))
+    spd.rotate_rad_ip(np.floor(r.randint(0, np.floor(2*np.pi))))
 
     spd = pygame.math.Vector2(spd)
     pos = pygame.math.Vector2(pos1, pos2)
 
     # ny = boid.boid(pygame.math.Vector2(1,2), [width / (i + 10), height / (i + 10)], 150, 0.02, 100, (0,255,0))
-    ny = boid.boid(spd, pos, 150, 0.01, (0,255,0), 30)
+    ny = boid.boid(spd, pos, 100, 0.01, (0,255,0), 100)
 
 
     bb.append(ny)
@@ -62,9 +62,9 @@ while True:
     # oppdatere posisjon
     # ball_pos[0] += speed[0]
     # ball_pos[1] += speed[1]
-    for b in bb:
+    # for b in bb:
         
-        b.position += b.speed
+    #     b.position += b.speed
 
     #finner avstand til nærmeste vegg??
     #vecTilVegg = pygame.math.Vector2(min(ball_pos[0], width - ball_pos[0]), min(ball_pos[1], height - ball_pos[1]))
@@ -83,7 +83,10 @@ while True:
     # synLengde = ball_radius * 9
     # test_retning = pygame.math.Vector2(speed)
 
-    for b in bb:    
+    for b in boid.boid.instanser:   
+
+        b.position[0] += b.speed[0]
+        b.position[1] += b.speed[1]
 
         test_retning = pygame.math.Vector2(b.speed)
 
@@ -99,11 +102,11 @@ while True:
                 
                 if prov % 2 == 1:
 
-                    test_retning.rotate_rad_ip(r.random() * b.rotmen * prov)
+                    test_retning.rotate_rad_ip(b.rotmen * prov)
                 
                 else:
 
-                    test_retning.rotate_rad_ip(r.random() * b.rotmen * -prov)
+                    test_retning.rotate_rad_ip(b.rotmen * -prov)
 
                 # roterer en så en annen ved mod
                 # roter speed og prøv igjen
@@ -116,12 +119,13 @@ while True:
                 b.speed = test_retning
                 break
 
-        for bbb in boid.boid.instanser:
 
-            ut = bbb.seperation()
-            # bbb.speed *= ut
+        lagring = b.seperation()
 
         pygame.draw.circle(screen, b.color, b.position, b.radius, 0)
+
+        # DEBUG
+        #pygame.draw.line(screen, red, b.position, (b.position - lagring) * 5)
 
     # vektor til hver vegg
     # v1 = pygame.math.Vector2(ball_pos[0], 0)
@@ -157,4 +161,4 @@ while True:
 
     pygame.display.flip()
 
-    clock.tick(60)
+    clock.tick(20)

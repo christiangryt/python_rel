@@ -55,31 +55,49 @@ class boid(pygame.sprite.Sprite):
         Om sant, styr unna
         '''
 
+        #sum av avstander til alle andre boids
+        # fant feilen, ved å referere til self.speed lager jeg ikke en kopi av speed, men jeg peker på samme objekt, altså vil hastigheten til boiden øke
+        mellom = pygame.math.Vector2(self.speed)
+
         for b in boid.instanser:            # alle boids
 
             # om jeg sjekker meg selv forkaster jeg
             if self == b:
                 continue
 
+            # avstand mellom 2 boid
+            diffPos = self.position - b.position
+            avstand = diffPos.magnitude()
+
+            # Ved å sette denne til - blir de trukket mot hverandre
+            # DETTE MÅ FIKSES, TIL SAMMEN VIL ALLE DYTTE ALLE UT, MEN HVER ENKELT "PRESSER"
+            # IKKE NOK SÅ DE EGENTLIG BARE IGNORER HVERANDRE
+            mellom += diffPos * (1 / avstand)
+
             # avstands vektor
-            avstandsVektor = self.position - b.position
+            #avstandsVektor += mellom * (1 / avstand)
+            # print (avstandsVektor)
 
-            # finner lengde av vektoren
-            avstand = avstandsVektor.magnitude()
+        #vinkelKraft = self.speed.angle_to(avstandsVektor.normalize())
 
-            #pygame.math.Vector2()
-            
-            vekkKraft = avstandsVektor
+        # DEBUG
 
-            if avstand <= self.bubble:
+        #vinkel mellom ny retning og speed Vec2 akk nå
+        vinkel_mellom = self.speed.angle_to(mellom)
 
-                # finner vektor vekk 
-                vekkRetning = avstandsVektor.normalize()
+        #roter self.speed mot denne (med en eller annen faktor)
+        self.speed.rotate_ip(vinkel_mellom * 0.05)
 
-                # finner hvor hardt den må dytte
-                vekkKraft += vekkRetning / avstand
+        #return mellom
 
-        # opdatere retningen til boid
-        vekkKraft *= self.speed
+        # self.speed += avstandsVektor.normalize() * 0.05
+        # skalerer vinkel med avstand
+        #vinkelKraft *= 0.05
 
-        #return vekkKraft
+        #roterer speed med så mye
+
+        # DENNE ER DOOKIE FORDI DEN BARE VRIR SEG SAMME VEG
+        # FINN EN MÅTE Å FINNE KORTESTE VINKEL
+        #self.speed.rotate_ip(vinkelKraft)
+
+        # return avstandsVektor
