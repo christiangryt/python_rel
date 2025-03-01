@@ -8,7 +8,7 @@ class boid(pygame.sprite.Sprite):
 
     instanser = []                          # liste inneholder alle boid objekter
 
-    def __init__(self, speed, position, synlen, rotmen, color, bubble):
+    def __init__(self, speed, position, synlen, rotmen, forsok, color, bubble):
         '''
         Ny boid tar in hastighet (vektor), posisjon (vektor) og en farge (hex elr no)
         '''
@@ -24,10 +24,10 @@ class boid(pygame.sprite.Sprite):
 
         self.speed = speed                  # vektor
         self.position = position            # kan sette denne manuelt, eller bare mate den med coords om man skal spawne nye
-        self.color = color                  # (x,y,z)             
+        self.color = color                  # (x,y,z)
         self.synlen = synlen                # hvor langt boid skal bry seg (mtp hindringer)
         self.rotmen = rotmen                # radianer mellom hvert forsøk
-        self.forsok = math.ceil(2*math.pi / rotmen)    
+        self.forsok = forsok
                                             # hvor mange stråler
         self.bubble = bubble                # avstand før boid tar unnvergelsesmanøver
 
@@ -61,6 +61,8 @@ class boid(pygame.sprite.Sprite):
 
         for b in boid.instanser:            # alle boids
 
+            mellom = pygame.math.Vector2(self.speed)
+
             # om jeg sjekker meg selv forkaster jeg
             if self == b:
                 continue
@@ -72,7 +74,21 @@ class boid(pygame.sprite.Sprite):
             # Ved å sette denne til - blir de trukket mot hverandre
             # DETTE MÅ FIKSES, TIL SAMMEN VIL ALLE DYTTE ALLE UT, MEN HVER ENKELT "PRESSER"
             # IKKE NOK SÅ DE EGENTLIG BARE IGNORER HVERANDRE
-            mellom += diffPos * (1 / avstand)
+            #mellom = diffPos * (1 / avstand)
+            mellom = diffPos
+
+            #vinkel mellom ny retning og speed Vec2 akk nå
+            vinkel_mellom = self.speed.angle_to(mellom)
+
+            if abs(vinkel_mellom) > 180:
+
+                vinkel_mellom -= 90
+
+            print(vinkel_mellom)
+
+            #roter self.speed mot denne (med en eller annen faktor)
+            self.speed.rotate_ip(vinkel_mellom * (1 / (1 + avstand)))
+
 
             # avstands vektor
             #avstandsVektor += mellom * (1 / avstand)
@@ -82,11 +98,6 @@ class boid(pygame.sprite.Sprite):
 
         # DEBUG
 
-        #vinkel mellom ny retning og speed Vec2 akk nå
-        vinkel_mellom = self.speed.angle_to(mellom)
-
-        #roter self.speed mot denne (med en eller annen faktor)
-        self.speed.rotate_ip(vinkel_mellom * 0.05)
 
         #return mellom
 

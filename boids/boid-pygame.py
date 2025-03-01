@@ -11,7 +11,7 @@ size = width, height = 1020, 840# klink måte å definere flere varibler
 spdVek = pygame.math.Vector2([3,1])
 bb = []
 
-for i in range (1, 40):
+for i in range (1, 10):
 
     pos1 = r.randint(40, width - 40)
     pos2 = r.randint(40, height- 40)
@@ -23,7 +23,7 @@ for i in range (1, 40):
     pos = pygame.math.Vector2(pos1, pos2)
 
     # ny = boid.boid(pygame.math.Vector2(1,2), [width / (i + 10), height / (i + 10)], 150, 0.02, 100, (0,255,0))
-    ny = boid.boid(spd, pos, 100, 0.01, (0,255,0), 100)
+    ny = boid.boid(spd, pos, 100, 0.05, 100, (0,255,0), 100)
 
 
     bb.append(ny)
@@ -99,18 +99,18 @@ while True:
             # print(utenfor_sjekk(futurePos))
 
             if utenfor_sjekk(futurePos):
-                
+
                 if prov % 2 == 1:
 
                     test_retning.rotate_rad_ip(b.rotmen * prov)
-                
+
                 else:
 
                     test_retning.rotate_rad_ip(b.rotmen * -prov)
 
                 # roterer en så en annen ved mod
                 # roter speed og prøv igjen
-                
+
                 # print (test_retning)
                 # pygame.draw.line(screen, red, b.position, b.position + test_retning)
 
@@ -118,7 +118,6 @@ while True:
 
                 b.speed = test_retning
                 break
-
 
         lagring = b.seperation()
 
@@ -161,4 +160,4 @@ while True:
 
     pygame.display.flip()
 
-    clock.tick(20)
+    clock.tick(30)
