@@ -90,6 +90,19 @@ while True:
 
         test_retning = pygame.math.Vector2(b.speed)
 
+        # ser på avstand til hver vegg. Tror dette scaler dårlig, eller hvertfall vanskelig
+        # å få til å funke med andre hindringer enn bare vegger
+
+        # FØRST: finner minste avstand
+        minAvstandX = b.position[0] - math.ceil(width / 2)
+        minAvstandY = b.position[1] - math.ceil(height / 2)
+        # tanken er at negativ eller positiv sier noe om hvilken vei man skal dytte
+
+        # dette blir vel egentlig en vektor
+        veggRetning = pygame.math.Vector2(minAvstandX, minAvstandY)
+
+        # prøve noe annet for å unngå vegger
+        """
         for prov in range(1, b.forsok):
 
             futurePos = b.position + test_retning.normalize() * (b.radius + b.synlen)
@@ -118,6 +131,7 @@ while True:
 
                 b.speed = test_retning
                 break
+        """
 
         lagring = b.seperation()
 

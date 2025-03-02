@@ -84,10 +84,10 @@ class boid(pygame.sprite.Sprite):
 
                 vinkel_mellom -= 90
 
-            print(vinkel_mellom)
+            # print(vinkel_mellom)
 
             #roter self.speed mot denne (med en eller annen faktor)
-            self.speed.rotate_ip(vinkel_mellom * (1 / (1 + avstand)))
+            self.speed.rotate_ip(vinkel_mellom * 0.5 * (100 / (1 + avstand ** 2)))
 
 
             # avstands vektor
