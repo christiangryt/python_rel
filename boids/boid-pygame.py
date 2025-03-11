@@ -7,11 +7,27 @@ pygame.init()               # starte opp pygame
 
 size = width, height = 1020, 840# klink måte å definere flere varibler
 
+# TEST KODE FRA CHAT
+import math
+def vinkel_mellom(v1, v2):
+    """ Returnerer vinkelen mellom to vektorer i grader """
+    dot_product = v1.x * v2.x + v1.y * v2.y  # Skalarprodukt
+    length_v1 = math.sqrt(v1.x**2 + v1.y**2)
+    length_v2 = math.sqrt(v2.x**2 + v2.y**2)
+
+    if length_v1 == 0 or length_v2 == 0:
+        return 0  # Unngå deling på null
+
+    cos_theta = dot_product / (length_v1 * length_v2)  # Cosinus til vinkelen
+    cos_theta = max(-1, min(1, cos_theta))  # Unngå numeriske feil
+
+    return math.degrees(math.acos(cos_theta))
+
 # LAGER TEST BOID
 spdVek = pygame.math.Vector2([3,1])
 bb = []
 
-for i in range (1, 10):
+for i in range (1, 30):
 
     pos1 = r.randint(40, width - 40)
     pos2 = r.randint(40, height- 40)
@@ -83,6 +99,8 @@ while True:
     # synLengde = ball_radius * 9
     # test_retning = pygame.math.Vector2(speed)
 
+    pygame.draw.circle(screen, red, (width //2, height //2), 20)
+
     for b in boid.boid.instanser:   
 
         b.position[0] += b.speed[0]
@@ -93,13 +111,27 @@ while True:
         # ser på avstand til hver vegg. Tror dette scaler dårlig, eller hvertfall vanskelig
         # å få til å funke med andre hindringer enn bare vegger
 
-        # FØRST: finner minste avstand
-        minAvstandX = b.position[0] - math.ceil(width / 2)
-        minAvstandY = b.position[1] - math.ceil(height / 2)
+        # Vektor mot midten av skjermen
+        # minAvstandX = b.position[0] - width // 2
+        # minAvstandY = b.position[1] - height // 2
+
+        midtpunkt = pygame.math.Vector2(width // 2, height // 2)
+        veggRetning = midtpunkt - b.position
         # tanken er at negativ eller positiv sier noe om hvilken vei man skal dytte
 
         # dette blir vel egentlig en vektor
-        veggRetning = pygame.math.Vector2(minAvstandX, minAvstandY)
+        # veggRetning = pygame.math.Vector2(minAvstandX, minAvstandY)
+
+        # motMidten = pygame.math.Vector2(b.position - veggRetning)
+
+        pygame.draw.line(screen, red, b.position, b.position - veggRetning)
+
+        # vinkel mellom speed og midten
+        # vinkel = b.speed.angle_to(veggRetning)
+        vinkel = vinkel_mellom(b.speed, veggRetning)
+
+        b.speed.rotate_ip(vinkel * (veggRetning.magnitude_squared() / 1690000))
+        pygame.draw.line(screen, black, b.position, b.position + b.speed*10)
 
         # prøve noe annet for å unngå vegger
         """
@@ -138,7 +170,7 @@ while True:
         pygame.draw.circle(screen, b.color, b.position, b.radius, 0)
 
         # DEBUG
-        #pygame.draw.line(screen, red, b.position, (b.position - lagring) * 5)
+        pygame.draw.line(screen, red, b.position, b.position - lagring)
 
     # vektor til hver vegg
     # v1 = pygame.math.Vector2(ball_pos[0], 0)

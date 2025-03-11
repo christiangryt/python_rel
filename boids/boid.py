@@ -1,6 +1,22 @@
 import pygame
 import math 
 
+# TEST KODE FRA CHAT
+import math
+def vinkelMellom(v1, v2):
+    """ Returnerer vinkelen mellom to vektorer i grader """
+    dot_product = v1.x * v2.x + v1.y * v2.y  # Skalarprodukt
+    length_v1 = math.sqrt(v1.x**2 + v1.y**2)
+    length_v2 = math.sqrt(v2.x**2 + v2.y**2)
+
+    if length_v1 == 0 or length_v2 == 0:
+        return 0  # Unngå deling på null
+
+    cos_theta = dot_product / (length_v1 * length_v2)  # Cosinus til vinkelen
+    cos_theta = max(-1, min(1, cos_theta))  # Unngå numeriske feil
+
+    return math.degrees(math.acos(cos_theta))
+
 class boid(pygame.sprite.Sprite):
     '''
     Klasseobjekt som skal simulere flokk bevegelser
@@ -57,11 +73,11 @@ class boid(pygame.sprite.Sprite):
 
         #sum av avstander til alle andre boids
         # fant feilen, ved å referere til self.speed lager jeg ikke en kopi av speed, men jeg peker på samme objekt, altså vil hastigheten til boiden øke
-        mellom = pygame.math.Vector2(self.speed)
+        mellom = self.speed.copy()
 
         for b in boid.instanser:            # alle boids
 
-            mellom = pygame.math.Vector2(self.speed)
+            # mellom = pygame.math.Vector2(self.speed)
 
             # om jeg sjekker meg selv forkaster jeg
             if self == b:
@@ -69,37 +85,32 @@ class boid(pygame.sprite.Sprite):
 
             # avstand mellom 2 boid
             diffPos = self.position - b.position
-            avstand = diffPos.magnitude()
+            avstand = (diffPos.magnitude_squared() + self.radius) * 0.001
 
             # Ved å sette denne til - blir de trukket mot hverandre
-            # DETTE MÅ FIKSES, TIL SAMMEN VIL ALLE DYTTE ALLE UT, MEN HVER ENKELT "PRESSER"
-            # IKKE NOK SÅ DE EGENTLIG BARE IGNORER HVERANDRE
-            #mellom = diffPos * (1 / avstand)
-            mellom = diffPos
+            # mindre avstand dytter mer
+            mellom += diffPos / avstand
 
-            #vinkel mellom ny retning og speed Vec2 akk nå
-            vinkel_mellom = self.speed.angle_to(mellom)
+        #vinkel mellom ny retning og speed Vec2 akk nå
+        vinkel_mellom = vinkelMellom(self.speed, mellom)
 
-            if abs(vinkel_mellom) > 180:
+        # angle_to GIR RARE VINKLER
+        # vinkel_mellom = self.speed.angle_to(mellom)
 
-                vinkel_mellom -= 90
+        # skalerer vinkel med lengden på mellom, men aldri mer enn 1
+        # rot_faktor = min(1, mellom.magnitude_squared() / 1690000)
+        rot_faktor = 0.05
 
-            # print(vinkel_mellom)
+        self.speed.rotate_ip(vinkel_mellom * rot_faktor)
 
-            #roter self.speed mot denne (med en eller annen faktor)
-            self.speed.rotate_ip(vinkel_mellom * 0.5 * (100 / (1 + avstand ** 2)))
-
-
-            # avstands vektor
-            #avstandsVektor += mellom * (1 / avstand)
-            # print (avstandsVektor)
+        # avstands vektor
+        #avstandsVektor += mellom * (1 / avstand)
+        # print (avstandsVektor)
 
         #vinkelKraft = self.speed.angle_to(avstandsVektor.normalize())
 
         # DEBUG
-
-
-        #return mellom
+        return mellom
 
         # self.speed += avstandsVektor.normalize() * 0.05
         # skalerer vinkel med avstand
