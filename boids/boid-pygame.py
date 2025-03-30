@@ -117,6 +117,7 @@ while True:
 
         midtpunkt = pygame.math.Vector2(width // 2, height // 2)
         veggRetning = midtpunkt - b.position
+
         # tanken er at negativ eller positiv sier noe om hvilken vei man skal dytte
 
         # dette blir vel egentlig en vektor
@@ -130,7 +131,7 @@ while True:
         # vinkel = b.speed.angle_to(veggRetning)
         vinkel = vinkel_mellom(b.speed, veggRetning)
 
-        b.speed.rotate_ip(vinkel * (veggRetning.magnitude_squared() / 1690000))
+        b.speed.rotate_ip(vinkel * ((veggRetning.magnitude() - veggRetning.magnitude_squared()) / 2500000))
         pygame.draw.line(screen, black, b.position, b.position + b.speed*10)
 
         # prøve noe annet for å unngå vegger
