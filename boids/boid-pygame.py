@@ -10,19 +10,19 @@ size = width, height = 1020, 840# klink måte å definere flere varibler
 # Vektor vekk fra vegg
 def vegg_vektor(width, height, pos):
 
-    ut = (0,0)
+    ut = [0,0]
 
     posX, posY = pos
 
     if width//2 - posX > 0:
-        ut[0] = min(1, 1 / posX)
+        ut[0] = posX
     else:
-        ut[0] = min(1, 1 / (posX - width))  # her er width > posX -> ut[0] < 0
+        ut[0] = posX - width  # her er width > posX -> ut[0] < 0
 
     if height//2 - posY > 0:
-        ut[1] = min(1, 1 / posY)
+        ut[1] = posY
     else:
-        ut[1] = min(1, 1 / (posY - height))
+        ut[1] = posY - height
 
     return ut
 
@@ -126,14 +126,15 @@ while True:
 
         test_retning = pygame.math.Vector2(b.speed)
 
-        midtpunkt = pygame.math.Vector2(width // 2, height // 2)
-        veggRetning = midtpunkt - b.position
+        #midtpunkt = pygame.math.Vector2(width // 2, height // 2)
+        veggRetning = pygame.math.Vector2(vegg_vektor(width, height, b.position))
+        #veggRetning = midtpunkt - b.position
 
-        pygame.draw.line(screen, red, b.position, b.position - veggRetning)
+        pygame.draw.line(screen, red, b.position,b.position - veggRetning)
 
         # vinkel mellom speed og midten
-        # vinkel = b.speed.angle_to(veggRetning)
-        vinkel = min(vinkel_mellom(b.speed, veggRetning) * (veggRetning.magnitude() - veggRetning.magnitude_squared()) * 0.00001, 1)
+        #vinkel = b.speed.angle_to(veggRetning)
+        vinkel = min(vinkel_mellom(b.speed, veggRetning), 1)
 
         b.speed.rotate_ip(vinkel)
         pygame.draw.line(screen, black, b.position, b.position + b.speed*10)
