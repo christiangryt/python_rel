@@ -71,13 +71,9 @@ class boid(pygame.sprite.Sprite):
         Om sant, styr unna
         '''
 
-        #sum av avstander til alle andre boids
-        # fant feilen, ved å referere til self.speed lager jeg ikke en kopi av speed, men jeg peker på samme objekt, altså vil hastigheten til boiden øke
         mellom = self.speed.copy()
 
         for b in boid.instanser:            # alle boids
-
-            # mellom = pygame.math.Vector2(self.speed)
 
             # om jeg sjekker meg selv forkaster jeg
             if self == b:
@@ -85,7 +81,7 @@ class boid(pygame.sprite.Sprite):
 
             # avstand mellom 2 boid
             diffPos = self.position - b.position
-            avstand = (diffPos.magnitude_squared() + self.radius) * 0.001
+            avstand = (diffPos.magnitude_squared() + self.radius) * 0.1
 
             # Ved å sette denne til - blir de trukket mot hverandre
             # mindre avstand dytter mer
@@ -94,32 +90,8 @@ class boid(pygame.sprite.Sprite):
         #vinkel mellom ny retning og speed Vec2 akk nå
         vinkel_mellom = vinkelMellom(self.speed, mellom)
 
-        # angle_to GIR RARE VINKLER
-        # vinkel_mellom = self.speed.angle_to(mellom)
-
-        # skalerer vinkel med lengden på mellom, men aldri mer enn 1
-        # rot_faktor = min(1, mellom.magnitude_squared() / 1690000)
         rot_faktor = 0.05
 
         self.speed.rotate_ip(vinkel_mellom * rot_faktor)
-
-        # avstands vektor
-        #avstandsVektor += mellom * (1 / avstand)
-        # print (avstandsVektor)
-
-        #vinkelKraft = self.speed.angle_to(avstandsVektor.normalize())
-
         # DEBUG
         return mellom
-
-        # self.speed += avstandsVektor.normalize() * 0.05
-        # skalerer vinkel med avstand
-        #vinkelKraft *= 0.05
-
-        #roterer speed med så mye
-
-        # DENNE ER DOOKIE FORDI DEN BARE VRIR SEG SAMME VEG
-        # FINN EN MÅTE Å FINNE KORTESTE VINKEL
-        #self.speed.rotate_ip(vinkelKraft)
-
-        # return avstandsVektor
