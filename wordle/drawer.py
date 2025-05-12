@@ -37,8 +37,8 @@ class drawer():
 
         # Colors
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
         color = 0
@@ -53,3 +53,36 @@ class drawer():
         stdscr.addstr(self.start_y + guess, self.start_x + pos * self.padding, letter, curses.color_pair(color))
 
         stdscr.refresh()
+
+    def takeGuess(self, guess):
+        """
+        Draw guess at reasonable posistion and clear when new guess comes
+
+        Handles deletion of characters in guess
+        """
+
+        # What row relative to start_y to display guess
+        guessRow = 8
+
+        # Clear guess Row before new round
+        for i in range(5):
+            self.display(self.stdscr, guessRow, i, " ", 3)
+
+        attempt = ""
+        while True:
+            c = self.stdscr.getch()
+            if c == curses.KEY_BACKSPACE and len(attempt) > 0:
+                    attempt = attempt[:-1]
+                    self.display(self.stdscr, guessRow, len(attempt), " ", 3)
+
+            elif len(attempt) >= 5:
+                if c == curses.KEY_ENTER:
+                    break
+                else:
+                    continue
+
+            else:
+                attempt += chr(c)
+                self.display(self.stdscr, guessRow, len(attempt) - 1, chr(c), 3)
+
+        return attempt

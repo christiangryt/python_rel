@@ -1,4 +1,5 @@
 import curses
+import time
 from drawer import drawer
 from server import server
 
@@ -9,32 +10,24 @@ def main(stdscr):
     ser = server("words.txt")
     status = ser.length * [0]
     ser.getWord()
-    tries = 0
+    guess = 0
 
-    for i, letter in enumerate(ser.secretWord):
+    while guess < 5:
 
-        draw.display(stdscr, 10, i, letter, 3)
+        attempt = draw.takeGuess(guess)
 
-    while tries <= 5:
+        status = ser.checkWord(attempt)
 
-        #bruker gjetter
-        curses.echo()
-        gjett = stdscr.getstr(0,17,20)
-        curses.noecho()
+        for i, letter in enumerate(attempt):
 
-        gjett = gjett.decode('utf-8')
-        sjekk = ser.checkWord(gjett)
+            draw.display(stdscr, guess, i, letter, status[i])
+            time.sleep(0.4)
 
-        for i, letter in enumerate(gjett):
-
-            draw.display(stdscr, tries, i, letter, sjekk[i])
-
-        stdscr.getch()
-
-        if status == [2,2,2,2,2]:
-
+        if set(status) == {2}:
             break
 
-        tries += 1
+        guess += 1
+
+    stdscr.getch()
 
 curses.wrapper(main)
