@@ -1,5 +1,6 @@
 import os
 import random as r
+import string
 
 class server():
     """
@@ -57,6 +58,8 @@ class server():
         2 - Letter is in the right place.
         """
 
+        # TODO: Ikke tillate tidligere gjett
+
         wordList = [x.upper() for x in word]
 
         for i,letter in enumerate(self.secretWord):
@@ -79,13 +82,21 @@ class server():
         return wordList
 
 
-    def remainingLetters(self):
+    def remainingLetters(self, attempt):
+
         """
         Return list of letters that have already been used
 
         TODO: Write function remainingLetters
         """
-        None
+        alphabet = string.ascii_uppercase
+
+        attempt = set(attempt)
+
+        for char in alphabet_set:
+            alphabet.replace(char, "")
+
+        print (alphabet)
 
 #ser = server("words.txt")
 #

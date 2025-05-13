@@ -10,6 +10,8 @@ def main(stdscr):
     ser = server("words.txt")
     status = ser.length * [0]
     ser.getWord()
+    ser.secretWord = "METES"
+    # TODO: This causes a bug. f.ex. later, the e will be yellow when it should be green
     guess = 0
 
     while guess < 5:
@@ -17,10 +19,14 @@ def main(stdscr):
         attempt = draw.takeGuess(guess)
         status = ser.checkWord(attempt)
 
+        # Show attempt
         for i, letter in enumerate(attempt):
 
             draw.display(stdscr, guess, i, letter, status[i])
             time.sleep(0.4)
+
+        # Remove wrong letters
+        draw.removeLetters(attempt, status)
 
         if set(status) == {2}:
             break
