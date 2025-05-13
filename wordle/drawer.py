@@ -58,31 +58,27 @@ class drawer():
         """
         Draw guess at reasonable posistion and clear when new guess comes
 
-        Handles deletion of characters in guess
+        Handles deletion of characters in attempt
         """
 
-        # What row relative to start_y to display guess
-        guessRow = 8
-
         # Clear guess Row before new round
-        for i in range(5):
-            self.display(self.stdscr, guessRow, i, " ", 3)
+        #for i in range(5):
+            #self.display(self.stdscr, guess, i, " ", 3)
 
         attempt = ""
         while True:
             c = self.stdscr.getch()
-            if c == curses.KEY_BACKSPACE and len(attempt) > 0:
+            if c == curses.KEY_BACKSPACE:
+                if len(attempt) > 0:
                     attempt = attempt[:-1]
-                    self.display(self.stdscr, guessRow, len(attempt), " ", 3)
+                    self.display(self.stdscr, guess, len(attempt), " ", 3)
 
             elif len(attempt) >= 5:
-                if c == curses.KEY_ENTER:
+                if c == 10:
                     break
-                else:
-                    continue
 
             else:
                 attempt += chr(c)
-                self.display(self.stdscr, guessRow, len(attempt) - 1, chr(c), 3)
+                self.display(self.stdscr, guess, len(attempt) - 1, chr(c), 3)
 
         return attempt
