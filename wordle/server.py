@@ -66,18 +66,18 @@ class server():
             if letter == wordList[i]:
                 # skriver om input slik at bokstav ikke tolkes flere ganger
                 wordList[i] = 2
+
+        for i, letter in enumerate(wordList):
+            # LK stygt men funker
+            if letter == 2:
                 continue
 
             try:
-                index = wordList.index(letter)
-                wordList[index] = 1
+                index = self.secretWord.index(letter)
+                wordList[i] = 1
 
             except:
-                None
-
-        for letter in wordList:
-            if type(letter)==type("a"):
-                wordList[wordList.index(letter)] = 0
+                wordList[i] = 0
 
         return wordList
 

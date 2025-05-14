@@ -10,8 +10,6 @@ def main(stdscr):
     ser = server("words.txt")
     status = ser.length * [0]
     ser.getWord()
-    ser.secretWord = "METES"
-    # TODO: This causes a bug. f.ex. later, the e will be yellow when it should be green
     guess = 0
 
     while guess < 5:
