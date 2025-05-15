@@ -12,7 +12,7 @@ def main(stdscr):
     ser.getWord()
     guess = 0
 
-    while guess < 5:
+    while guess <= 6:
 
         attempt = draw.takeGuess(guess)
         status = ser.checkWord(attempt)
