@@ -58,22 +58,27 @@ class server():
         2 - Letter is in the right place.
         """
 
-        # TODO: Ikke tillate tidligere gjett
+        # TODO: Dont allow previous guesses
 
         wordList = [x.upper() for x in word]
+
+        # List of secretWord to overwrite to ensure
+        # Each letter is counted once
+        secretSacrifice = list(self.secretWord)
 
         for i,letter in enumerate(self.secretWord):
             if letter == wordList[i]:
                 # skriver om input slik at bokstav ikke tolkes flere ganger
                 wordList[i] = 2
+                secretSacrifice[i] = 2
 
         for i, letter in enumerate(wordList):
-            # LK stygt men funker
-            if letter == 2:
+            # TODO Compare types not values
+            if letter == 2 or letter == 1 or letter == 0:
                 continue
 
             try:
-                index = self.secretWord.index(letter)
+                index = secretSacrifice.index(letter)
                 wordList[i] = 1
 
             except:

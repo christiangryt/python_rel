@@ -32,24 +32,35 @@ testORD = "PLATE"
 #print(sortert)
 best = ""
 score = 0
+score2 = 0
 
 with open("words.txt", "rb") as f:
 
     while (line := f.readline()):
 
-        total = 0
+        total1 = 0
+        total2 = 0
         for i, letter in enumerate(line.strip()):
 
             # finner forholdet mellom bokstav/total
             antall = dd[i][chr(letter)]
             forhold = antall/tot_ord
+            #print (forhold)
 
-            total += 4*forhold - 4*forhold**2
+            total1 += 4*forhold - 4*forhold**2
+            total2 += antall
 
-        if total > score:
+        if total1 > score:
 
             best = line.strip()
-            score = total
+            score = total1
+            print (best)
+            print (total1)
 
+        if total2 > score2:
+
+            score2 = total2
+            print(line.strip())
+            print (total2)
 print (best)
 print (score)

@@ -12,7 +12,7 @@ def main(stdscr):
     ser.getWord()
     guess = 0
 
-    while guess <= 6:
+    while guess < 6:
 
         attempt = draw.takeGuess(guess)
         status = ser.checkWord(attempt)
@@ -21,7 +21,7 @@ def main(stdscr):
         for i, letter in enumerate(attempt):
 
             draw.display(stdscr, guess, i, letter, status[i])
-            time.sleep(0.4)
+            time.sleep(0.3)
 
         # Remove wrong letters
         draw.removeLetters(attempt, status)
@@ -32,7 +32,7 @@ def main(stdscr):
         guess += 1
 
     # Print answer if failure
-    if guess >= 5:
+    if guess >= 6:
         for i, letter in enumerate(ser.secretWord):
             draw.display(stdscr, 6, i, letter, 3)
             time.sleep(0.4)
