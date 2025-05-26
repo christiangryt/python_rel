@@ -17,7 +17,6 @@ class wordleBOT():
         self.totalWords = 12915
         self.source = "words.txt"
         self.knowledge = 5 * [""]
-        self.yellows = []
 
         # Init functions
         self.instances = self.countInstances()
@@ -65,15 +64,14 @@ class wordleBOT():
                 case 1:
                     # undersøk om dette er nok logikk
                     if letter not in self.knowledge:
-                        self.yellows.append(letter)
+                        #self.yellows.append(letter)
                 case 2:
                     self.knowledge[i] = letter
                     if letter in self.yellows:
-                        self.yellows.remove(letter)
+                        #self.yellows.remove(letter)
 
         print (self.validLetters)
         print (self.knowledge)
-        print (self.yellows)
 
 
 bot = wordleBOT()

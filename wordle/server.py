@@ -92,7 +92,7 @@ class server():
         """
         Return list of letters that have already been used
 
-        TODO: Write function remainingLetters
+        TODO: Use remainingletters
         """
         alphabet = string.ascii_uppercase
 
