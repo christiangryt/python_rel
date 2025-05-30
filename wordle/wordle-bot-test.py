@@ -64,3 +64,8 @@ with open("words.txt", "rb") as f:
             #print (total2)
 print (best)
 print (score)
+
+print(dd)
+
+dd[2].pop(i)
+print(dd[2].has_key(i"))

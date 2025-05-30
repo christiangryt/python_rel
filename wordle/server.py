@@ -22,7 +22,8 @@ class server():
         self.source = source
         self.length = 5
         self.offset = 6
-        self.amountWords = os.path.getsize(source) / self.offset
+        #self.amountWords = os.path.getsize(source) / self.offset
+        self.amountWords = 12910
 
         self.secretWord = ""
 
@@ -62,7 +63,7 @@ class server():
 
         wordList = [x.upper() for x in word]
 
-        # List of secretWord to overwrite to ensure
+         List of secretWord to overwrite to ensure
         # Each letter is counted once
         secretSacrifice = list(self.secretWord)
 
