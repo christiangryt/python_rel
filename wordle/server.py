@@ -22,8 +22,8 @@ class server():
         self.source = source
         self.length = 5
         self.offset = 6
-        #self.amountWords = os.path.getsize(source) / self.offset
-        self.amountWords = 12910
+        self.amountWords = os.path.getsize(source) / self.offset
+        #self.amountWords = 12910
 
         self.secretWord = ""
 
@@ -44,9 +44,9 @@ class server():
             f.seek(tall * self.offset)
 
             # read and decode
-            word = f.read(self.length).decode("ascii")
+            letter = f.read(self.length).decode()
 
-        self.secretWord = [x for x in word]
+            self.secretWord = letter
 
     def checkWord(self, word):
         """
@@ -61,13 +61,17 @@ class server():
 
         # TODO: Dont allow previous guesses
 
+        if len(word) != 5:
+            raise Exception("Invalid Guess lenght")
+
         wordList = [x.upper() for x in word]
 
-         List of secretWord to overwrite to ensure
+        # List of secretWord to overwrite to ensure
         # Each letter is counted once
         secretSacrifice = list(self.secretWord)
 
         for i,letter in enumerate(self.secretWord):
+
             if letter == wordList[i]:
                 # skriver om input slik at bokstav ikke tolkes flere ganger
                 wordList[i] = 2
@@ -108,7 +112,9 @@ class server():
 #
 ## pick random word
 #tall = r.randint(0, ser.amountWords)
-#ser.getWord(tall)
+#ser.getWord()
 #
 #print(ser.secretWord)
+#word = ser.secretWord
+#print (type(word))
 #print(ser.checkWord("hello"))
