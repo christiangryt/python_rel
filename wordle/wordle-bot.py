@@ -15,32 +15,41 @@ class wordleBOT():
         TODO: Ability to give different word file, not hard coded
         """
 
-
-        self.words=[]
         self.source = "words.txt"
+        self.words = self.loadWords()
 
         # Init functions
         self.instances = self.countInstances()
 
+    def loadWords(self):
+        """
+        Read words from given source file. Count instances in this list, not from original
+        """
+
+        words = []
+
+        with open(self.source, "r") as f:
+
+            while (line:=f.readline().strip()):
+
+                words.append(line)
+
+        return words
+
     def countInstances(self):
         """
-        Given list of words that are the same length, make a dictionary of dictionaries holding the occurance of each letter in each position.
+        Count instances of letters in object word list
 
-        Appends words to words list
+        TODO: Review need to loop through entire list every time
         """
 
         instances = defaultdict(lambda: defaultdict(int))
 
-        with open(self.source, "rb") as f:
+        for word in self.words:
 
-            #Read until empty string (EOF) is passed
-            while (line := f.readline()):
+            for i, letter in enumerate(word):
 
-                self.words.append(line.decode().strip())
-
-                for i, letter in enumerate(line.strip()):
-
-                    instances[i][chr(letter)] += 1
+                    instances[i][letter] += 1
 
         return instances
 
@@ -78,6 +87,12 @@ class wordleBOT():
 
             for i, letter in enumerate(word):
 
+                weight = self.findWeight(i, letter)
+
+                if weight == 0:
+                    self.words.remove(word)
+                    break
+
                 total += self.findWeight(i, letter)
 
             if total > score:
@@ -91,6 +106,8 @@ class wordleBOT():
         Given a guess (string) and a result (list of integers) update dict of dicts by removing obsolete letters
         """
 
+        self.instances = self.countInstances()
+
         for i,res in enumerate(result):
             letter = guess[i].upper()
 
@@ -99,7 +116,7 @@ class wordleBOT():
                     for j in range (0, 5):
 
                         # Perhaps Inefficient, but it works
-                        if len(self.instances[j]) != 1:
+                        if len(self.instances[j]) != 1 and result[j] != 2:
                             self.instances[j].pop(letter, None)
                 case 1:
                     self.instances[i].pop(letter, None)
@@ -107,9 +124,6 @@ class wordleBOT():
                     value = self.instances[i][letter]
                     self.instances[i] = defaultdict(int)
                     self.instances[i][letter] = value
-
-            #print (self.instances[i])
-
 
 bot = wordleBOT()
 #bot.updateState("HELLO", [2,1,2,0,0])
@@ -124,10 +138,12 @@ guess = ""
 for i in range(10):
 
     guess = bot.findGuess()
-    print(guess)
+    print(f"Guess {i + 1} {guess}")
+    #print(serv.secretWord in bot.words)
 
     svar = serv.checkWord(guess)
     bot.updateState(guess, svar)
+    print (len(bot.words))
 
     if guess == serv.secretWord:
         print ("Gratulerer")
