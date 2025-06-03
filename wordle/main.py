@@ -2,8 +2,11 @@ import curses
 import time
 from drawer import drawer
 from server import server
+from wordleBOT import wordleBOT
 
 def main(stdscr):
+
+    bot = wordleBOT()
 
     # Setup
     draw = drawer(stdscr)
@@ -14,8 +17,10 @@ def main(stdscr):
 
     while guess < 6:
 
-        attempt = draw.takeGuess(guess)
+        #attempt = draw.takeGuess(guess)
+        attempt = bot.findGuess()
         status = ser.checkWord(attempt)
+        bot.updateState(attempt, status)
 
         # Show attempt
         for i, letter in enumerate(attempt):

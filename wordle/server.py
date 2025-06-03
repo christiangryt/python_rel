@@ -62,7 +62,7 @@ class server():
         # TODO: Dont allow previous guesses
 
         if len(word) != 5:
-            raise Exception("Invalid Guess lenght")
+            raise Exception("Invalid Guess length")
 
         wordList = [x.upper() for x in word]
 
@@ -84,6 +84,7 @@ class server():
 
             try:
                 index = secretSacrifice.index(letter)
+                secretSacrifice[index] = 0
                 wordList[i] = 1
 
             except:
@@ -114,7 +115,8 @@ class server():
 #tall = r.randint(0, ser.amountWords)
 #ser.getWord()
 #
+#ser.secretWord = "WHIRE"
 #print(ser.secretWord)
 #word = ser.secretWord
 #print (type(word))
-#print(ser.checkWord("hello"))
+#print(ser.checkWord("WEHER"))
