@@ -5,10 +5,29 @@ from server import server
 
 class wordleBOT():
 
-    def __init__(self):
+    def __init__(self, draw=False, debug=False, guess_information=False, word_information=False):
         """
         Given available letters will return guess given a file with words of the same lenght.
         Will play in hard mode.
+
+        Yellows contains all letters known to be in the word
+
+        draw: bool
+        True No output sends results to be used with main.py
+        False Writes outputs to terminal
+
+        debug: bool
+        dont use with draw
+        True Outputs why words were removed.
+        False No context on why letters were removed
+
+        guess_information: bool
+        will not work with draw
+        True Outputs Server results from guess, if the secretWord is still in the bots words and amount of words left in the bots list
+
+        word_information: bool
+        will not work with draw
+        True Gives information about remaining words and instances dictionaries
 
         Will hard code some values.
 
@@ -18,12 +37,12 @@ class wordleBOT():
 
         self.source = "words.txt"
         self.words = self.loadWords()
-
-        # Hacky solution since words being removed dont immidiatly change instances such that certain letters will get negative weight
-        self.old_length = 0
-
-        # List of letters that are in the word but not a green letter i.e. position is unknow
         self.yellows = set()
+
+        self.draw = draw
+        self.debug = debug
+        self.guess_information = guess_information
+        self.word_information = word_information
 
         # Init functions
         self.instances = self.countInstances()
@@ -60,7 +79,7 @@ class wordleBOT():
 
         return instances
 
-    def findWeight(self, position, letter):
+    def findWeight(self, position, letter, old_length):
         """
         Give a value to a letter based on its position where letters closer to 0.5 are weighted more.
 
@@ -74,11 +93,11 @@ class wordleBOT():
         if occur == 0:
             return 0
 
-        fraction = occur / (self.old_length + 1)
-        #print (len(self.words))
-        #print (f"{letter} : {fraction}")
-        #print (f"{letter} : {occur}")
-        #print (1 - fraction**2)
+        fraction = occur / (old_length + 1)
+
+        if self.debug:
+            print (f"{letter} : {fraction}")
+            print (f"{letter} : {occur}")
 
         return 7 * fraction * (1 - fraction)
 
@@ -92,25 +111,26 @@ class wordleBOT():
 
         best = ""
         score = 0
-        self.old_length = len(self.words)
+        old_length = len(self.words)
 
         for word in self.words[:]:
 
             total = 0
 
             check = set(word).issuperset(self.yellows)
-            #print (check)
 
             if check:
 
                 for i, letter in enumerate(word):
 
-                    weight = self.findWeight(i, letter)
+                    weight = self.findWeight(i, letter, old_length)
 
                     if weight == 0:
 
                         self.words.remove(word)
-                        #print(f"{word} letter not in word")
+
+                        if self.debug:
+                            print(f"{word} {letter} not in instances")
 
                         total = 0
                         break
@@ -119,18 +139,18 @@ class wordleBOT():
 
             else:
                 self.words.remove(word)
-                #print (f"{word} does not contain known letters")
+
+                if self.debug:
+                    print (f"{word} does not contain known letters")
                 continue
 
             if total > score:
                 best = word
                 score = total
-                #print (best)
 
-            #print (f"{word} has total {total}")
-            #print (f"Best word is {best}")
-
-        #print (counter)
+            if self.debug:
+                print (f"{word} has total {total}")
+                print (f"Best word is {best}")
 
         return best
 
@@ -152,8 +172,11 @@ class wordleBOT():
                                 self.instances[i].pop(letter, None)
                                 break
                     else:
+                        if self.debug:
+                            print (f"Removed {letter}")
+
                         for k in range(5):
-                            #print (f"fjerna nå {letter}")
+
                             self.instances[k].pop(letter, None)
 
                 case 1:
@@ -165,29 +188,39 @@ class wordleBOT():
                     self.instances[i] = defaultdict(int)
                     self.instances[i][letter] = value
 
-bot = wordleBOT()
+bot = wordleBOT(guess_information=True)
 
 ### BOT TESTING BRRR ###
-#serv = server("words.txt")
-#serv.getWord()
-##serv.secretWord = "UMAMI"
-#print(serv.secretWord)
-#
-#guess = ""
-#
-#for i in range(10):
-#
-    #guess = bot.findGuess()
-    #print(f"Guess {i + 1} {guess}")
-    ##print(serv.secretWord in bot.words)
-    #print (len(bot.words))
-    ##print (bot.words)
-    ##print (bot.instances)
-#
-    #svar = serv.checkWord(guess)
-    #bot.updateState(guess, svar)
-    #print (svar)
-#
-    #if guess == serv.secretWord:
-        #print ("Gratulerer")
-        #break
+if not bot.draw:
+
+    serv = server("words.txt")
+
+    serv.getWord()
+    #serv.secretWord = "UMAMI"
+
+    print(serv.secretWord)
+
+    guess = ""
+
+    # TODO: Fix loop to respect wordle loops. better yet make server enforce
+    for i in range(10):
+
+        guess = bot.findGuess()
+        print(f"Guess {i + 1} {guess}")
+
+        svar = serv.checkWord(guess)
+
+        if bot.guess_information:
+            print(serv.secretWord in bot.words)
+            print (len(bot.words))
+            print (svar)
+
+        if bot.word_information:
+            print (bot.words)
+            print (bot.instances)
+
+        bot.updateState(guess, svar)
+
+        if guess == serv.secretWord:
+            print ("Gratulerer")
+            break

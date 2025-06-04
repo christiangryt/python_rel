@@ -6,7 +6,7 @@ from wordleBOT import wordleBOT
 
 def main(stdscr):
 
-    bot = wordleBOT()
+    bot = wordleBOT(draw=True)
 
     # Setup
     draw = drawer(stdscr)
