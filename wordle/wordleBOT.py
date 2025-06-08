@@ -188,7 +188,8 @@ class wordleBOT():
                     self.instances[i] = defaultdict(int)
                     self.instances[i][letter] = value
 
-bot = wordleBOT(guess_information=True)
+# TODO: Rewrite to actually make sense
+bot = wordleBOT(draw = True, guess_information=True)
 
 ### BOT TESTING BRRR ###
 if not bot.draw:
