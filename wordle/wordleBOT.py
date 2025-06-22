@@ -189,7 +189,7 @@ class wordleBOT():
                     self.instances[i][letter] = value
 
 # TODO: Rewrite to actually make sense
-bot = wordleBOT(draw = True, guess_information=True)
+bot = wordleBOT(draw = False, guess_information=True)
 
 ### BOT TESTING BRRR ###
 if not bot.draw:
