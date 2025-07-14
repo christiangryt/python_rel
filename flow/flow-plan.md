@@ -19,6 +19,23 @@ Research if algorithms exist for this type of problem (try to find what kind of 
 
 ## Solve boards
 
+### Convert to Maximum Flow problem
+
+Given n flow threads (green, blue, red, etc) pick a node as a starting node.    
+
+Find possible squares it is possible to reach (not going backwords as this is implicit due to flow being bidirectional **except starting nodes, these will only have flow out**) and also skipping previously inspected squares, but this seems obvious  
+
+Doing this for the entire square leads to a flow diagram where it is possible to make a super source and sink and run normal maximum flow algorithms. *(problem is to make sure only each color can complete each color)*     
+
+*Also implicit that each vertex (neighbouring squares) has capacity 1 and squares also have capacity 1, threads cannot share a square and only one thread can end in a square*    
+
+> Problem: Reduction from nodes with capacity to normal maximum flow. As there are plenty of cycles present, this might prove difficult   
+> > https://stackoverflow.com/questions/8751327/edmonds-karp-algorithm-for-a-graph-which-has-nodes-with-flow-capacities
+
+*More efficient way: Have a standard fully connected square (all vertices are bi-directional), if the node is a source node, remove all in vertices and if it is a sink node remove alll out vertices. (This works with node capacity constraints as well)*  
+
+> Unsure whether the cycles breaks this, but alas
+
 ### BFS
 Initial thoughts: BFS where every choice, checks if other paths become unsolvable or blocked in some way.   
 > pick a start node for each color, go a direction (random or towards end point), check if other colors are able to be completed. 
