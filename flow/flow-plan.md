@@ -36,9 +36,23 @@ Doing this for the entire square leads to a flow diagram where it is possible to
 
 > Unsure whether the cycles breaks this, but alas
 
+#### Efficiency
+
+This does not clearly solve the issue, as finding these augmenting paths from the flow network would in any non trivial board result in plenty of clearly incorrect paths     
+
+Potentially no point in using maximum flow, as the difficult question does not lie in how much a path can carry, but rather what paths there are, and the existance of other paths simultaniously in the graph   
+
 ### BFS
 Initial thoughts: BFS where every choice, checks if other paths become unsolvable or blocked in some way.   
 > pick a start node for each color, go a direction (random or towards end point), check if other colors are able to be completed. 
 > > Should start in each end, and work inwards
 
-This could work, but the 
+Essentially a backtracking, need to find optimizations, but pruning branches seems difficult as another net making a mistake could make a correct branch be pruned.   
+
+For each starting node/terminal pick an available non breaking square, check if the move is valid, else pick another, none available go back to last square. Then go another starting node.     
+
+### "River routing algorithm"
+
+Algorithm that solves the problem how to most efficiently wire wireboards, smack in the middle. Might need to adjust for the fact that flow has terminals in the middle of the board and not only on the edges, but this looks promising  
+
+
