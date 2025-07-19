@@ -19,6 +19,12 @@ Research if algorithms exist for this type of problem (try to find what kind of 
 
 ## Solve boards
 
+To solve these boards, we arrive at the Multi Agent Pathfinding problem, it is NP-Hard.     
+
+Have not yet found a description of how to go forth finding these paths. There are 2 things i took away from reading the wiki. 1. backtracking seems to be a good base to start from, and 2. i am not yet sure how to guide the pathfinding. many people mention A\*, but this requires a wheightes graph and some semblence of types of connections, while in flow all edges are the same. One could weigh it on trying to go on the perimeter, but even still, that seems to simple, but maybe backtracking solves this.     
+
+I therefore want to simply try my hand at making a backtracking algorithm using node objects with defined neighbors and working from there.     
+
 ### Convert to Maximum Flow problem
 
 Given n flow threads (green, blue, red, etc) pick a node as a starting node.    
@@ -55,4 +61,6 @@ For each starting node/terminal pick an available non breaking square, check if 
 
 Algorithm that solves the problem how to most efficiently wire wireboards, smack in the middle. Might need to adjust for the fact that flow has terminals in the middle of the board and not only on the edges, but this looks promising  
 
+#### To specific
 
+The rive routing algorithm assumes terminals around the channel, but in flow these terminals are everywhere but around.
