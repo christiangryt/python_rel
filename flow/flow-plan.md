@@ -25,6 +25,12 @@ Have not yet found a description of how to go forth finding these paths. There a
 
 I therefore want to simply try my hand at making a backtracking algorithm using node objects with defined neighbors and working from there.     
 
+### Conflict based solver
+
+Find shortest path per agent. If there are conflicts, expand into new node and solve conflict.  
+
+Shortest Path is rarely the best path in Flow. It seems i need better Heuristics    
+
 ### Convert to Maximum Flow problem
 
 Given n flow threads (green, blue, red, etc) pick a node as a starting node.    
