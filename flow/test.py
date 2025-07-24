@@ -1,3 +1,7 @@
+import heapq
+# TODO:chatGPT løsning enn så lenge
+import itertools
+
 def astar(start, end, graph):
     """
     astar with simple shortest path heuristic
@@ -5,8 +9,50 @@ def astar(start, end, graph):
     and graph class object
     """
 
+    graph.reset_astar_values()
+    counter = itertools.count()
+
     open = []
     closed = []
+
+    # add starting node to open heap
+    heapq.heappush(open, (start.f, next(counter), start))
+
+    while open:
+        # litt janky, men trenger ikke pri
+        q = heapq.heappop(open)[-1]
+
+        for neigh in q.neighbors:
+            print (f"looking at {neigh}")
+            if neigh == end:
+                # returner nodene denne er innom
+                # loop gjennom parents
+                print ("Found exit")
+                open = []
+
+                """
+                gg = q
+                while gg != start:
+                    print (q.parent)
+                    gg =  q.parent
+                """
+                print (q.parent.parent.parent.parent)
+
+                break
+
+            g = q.g + 1
+            h = abs(neigh.x - end.x) + abs(neigh.y - end.y)
+            f = neigh.g + neigh.h
+
+            if f < neigh.f or neigh.f == 0:
+                heapq.heappush(open, (neigh.f, next(counter), neigh))
+
+                neigh.f = f
+                neigh.h = h
+                neigh.g = g
+
+                neigh.parent = q
+                q.successor.append(neigh)
 
 class node():
 
@@ -15,19 +61,46 @@ class node():
         self.y = y
         self.x = x
 
+        self.f = 0 # Total cost
+        self.g = 0 # Cost to node from start
+        self.h = 0 # Heuristic cost estimate
+
         self.neighbors = []
         self.parent = None
-        self.successor = None
+        self.successor = []
 
     def __repr__(self):
         return f"Node at ({self.y},{self.x})"
 
-    def get_neighbors(self):
+    def find_neighbors(self, d):
+        """
+        Given dictionary of nodes that exist, adds neighbors
+        """
 
-        if self.parent:
-            self.neighbors.remove(self.parent)
+        neighbors = []
 
-        return self.neighbors
+        search = [
+            (0, 1),
+            (1, 0),
+            (0, -1),
+            (-1, 0)
+        ]
+
+        #print ("---")
+        #print (self)
+        for s in search:
+
+            new_y = self.y + s[1]
+            new_x = self.x + s[0]
+            #print (f"{new_y} {new_x}")
+
+            res = d.get((new_y, new_x))
+            #print (res)
+
+            if res:
+                neighbors.append(res)
+
+        return neighbors
 
 class graph():
 
@@ -38,21 +111,47 @@ class graph():
         (I think passing a tuple/list where [0] is the length of each row and [1] being the flattened data. Easier to work with, and i can later make something to convert this below to said flattened structure)
 
         [
-            ["A", ".", "A"],
-            ["*", "B", "."],
-            ["*", "*", "B"],
+            3,
+            ["A", ".", "A","*", "B", ".","*", "*", "B"],
         ]
 
         Make node objects with correct neighbors and  states
         """
 
-        self.nodes = None
+        # Make nodes if square is in play
+        self.nodes = [
+                node (
+                    i // graph[0],
+                    i % graph[0]
+                )
 
-        for row in graph:
-            for node in row:
+                for i,n in enumerate(graph[1])
+                if n != "*"
+            ]
 
-                if node != "*":
-                    None
+        # Dictionary on coord tuple
+        self.node_locations = {
+                (n.y, n.x) : n for n in self.nodes
+            }
+
+        for n in self.nodes:
+            n.neighbors = n.find_neighbors(
+                    self.node_locations
+                )
+
+    def reset_astar_values(self):
+        """
+        Reset attr. to none and 0
+        Unsure if this is best practice, but seeing as im going to have to run a* one million times...
+        """
+
+        for n in self.nodes:
+            n.f = 0
+            n.g = 0
+            n.h = 0
+
+            n.parent = None
+            n.successor = []
 
 class flow():
     """
@@ -70,50 +169,23 @@ test = [
         ["A", ".", "A","*", "B", ".","*", "*", "B"],
 ]
 
-# works, might be better to spell it more out
-nodes = [node(i // test[0], i % test[0]) for i,n in enumerate(test[1]) if n != "*"]
-#print ([n.x for n in nodes])
-print (nodes)
+test2 = [
+    5,
+    [
+        ".", ".", ".", ".", ".",
+        ".", ".", ".", ".", ".",
+        ".", ".", ".", ".", ".",
+        ".", ".", ".", ".", ".",
+        ".", ".", ".", ".", ".",
+    ]
+]
 
-# find neighbors of each node
-# first make dict to search for neighbors easily
-y = 1
-x = 1
+# Make graph object
+g = graph(test2)
 
-# use dicts with tuples as key, very nice
-my_dict = {(n.y, n.x) : n for n in nodes}
-print (my_dict.get((y,x), "bacon"))
+start = g.node_locations.get((1,1))
+end = g.node_locations.get((4,4))
+
+astar(start, end, g)
 
 # works. if i want to ill optimize to not check already found neighbors, but, i dont think it will affect it in the long run
-def find_neighbors(n, d):
-
-    neighbors = []
-
-    search = [
-        (0, 1),
-        (1, 0),
-        (0, -1),
-        (-1, 0)
-    ]
-
-    print ("---")
-    print (n)
-    for s in search:
-
-        new_y = n.y + s[1]
-        new_x = n.x + s[0]
-        print (f"{new_y} {new_x}")
-
-        res = d.get((new_y, new_x))
-        print (res)
-
-        if res:
-            neighbors.append(res)
-
-    return neighbors
-
-for n in nodes:
-    n.neighbors = find_neighbors(n, my_dict)
-
-# dab and swag
-print (nodes[2].neighbors)
