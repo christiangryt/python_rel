@@ -4,12 +4,11 @@ from collections import defaultdict
 # TODO:chatGPT løsning enn så lenge
 import itertools
 
-def astar(start, end, graph, state = None):
+def astar(start, end, graph):
     """
     astar with simple "Manhatten Diagonal" heuristic
     node class objects as start and stop
     and graph class object
-    if state, treats other states as *
     """
 
     graph.reset_astar_values()
@@ -38,19 +37,15 @@ def astar(start, end, graph, state = None):
                 # loop gjennom parents
                 print ("Found exit")
                 path = []
-                open = []
 
                 neigh.parent = q
 
                 while q != start:
 
-                    # To represent the path
                     # TODO: Make toggleble. This is purely aestetic
                     q.state = start.state.lower()
 
                     path.append(q)
-
-                    #print (neigh.parent)
                     q = q.parent
 
                 return path
@@ -67,7 +62,6 @@ def astar(start, end, graph, state = None):
                 neigh.g = g
 
                 # TODO: Make this prettier in a way
-
                 neigh.parent = q
                 q.successor.append(neigh)
 
@@ -89,6 +83,7 @@ class node():
         self.successor = []
 
     def __repr__(self):
+        # TODO: Find other way of representing cells. Explicit call of state (will do this for final graphic version)
         if self.state == "*":
             return " "
         else:
@@ -155,14 +150,11 @@ class graph():
             y = i // self.width
             x = i % self.width
 
-            self.nodes.append(node (
-                y,
-                x,
-                n
-            ))
+            nnode = node(y, x, n)
+            self.nodes.append(nnode)
 
             if n != "." and n != "*":
-                self.terminals[n].append((y,x))
+                self.terminals[n].append(nnode)
 
         # Dictionary on coord tuple
         self.node_locations = {
@@ -183,14 +175,13 @@ class graph():
 
     def set_neighbors(self, conditions):
         """
-        Attempts to remove all neighbors from given positions
+        Attempts to remove all neighbors from given nodes
         Lets terminals have a local environment
         """
 
         for c in conditions:
 
-            node = self.node_locations.get(c)
-            node.find_neighbors(
+            c.find_neighbors(
                     self.node_locations,
                     delete = True
                 )
@@ -224,7 +215,22 @@ class flow():
     (This pathfinding needs to be easily able to respect the restrictions given by the CBS. I do have to solve it several times, but alas)
     """
 
-    None
+    def __init__(self, graph):
+        """
+        Graph object (list of nodes with neighbors)
+        """
+
+        self.graph = graph
+
+        # Each terminal and their restrictions
+        self.conditions = defaultdict(list)
+
+        for term in self.graph.terminals:
+
+            all_terms = self.graph.terminals.values()
+
+    def solve_terminals(self):
+        None
 
 # first element row width and the rest is flattened data
 test = [
@@ -239,33 +245,36 @@ test = [
 test2 = [
     5,
     [
-        "A", ".", ".", ".", "B",
+        "A", "B", ".", ".", ".",
         ".", "*", ".", ".", ".",
-        "*", "*", ".", ".", ".",
         ".", ".", ".", ".", ".",
-        "A", "*", "B", ".", ".",
+        "*", "*", "*", ".", ".",
+        "A", ".", ".", ".", "B",
     ]
 ]
 
 # Make graph object
 g = graph(test2)
 
-start = g.node_locations.get(g.terminals["A"][0])
-end = g.node_locations.get(g.terminals["A"][1])
+start = g.terminals["A"][0]
+end = g.terminals["A"][1]
 
-g.set_neighbors(g.terminals["B"])
+g.set_neighbors((g.terminals["B"]))
 
 path = astar(start, end, g)
 
 g.add_all_neighbors()
 g.set_neighbors(g.terminals["A"])
-start = g.node_locations.get(g.terminals["B"][0])
-end = g.node_locations.get(g.terminals["B"][1])
+
+start = g.terminals["B"][0]
+end = g.terminals["B"][1]
 
 path = astar(start,end, g)
 
 g.display_graph()
 print (g.terminals)
+print (g.terminals.values())
+
 
 # Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
 # Either: Make a copy of the board so i can change states and maka truly local board
