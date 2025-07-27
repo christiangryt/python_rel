@@ -1,15 +1,24 @@
 import heapq
+import math
+from collections import defaultdict
 # TODO:chatGPT løsning enn så lenge
 import itertools
 
-def astar(start, end, graph):
+def astar(start, end, graph, state = None):
     """
-    astar with simple shortest path heuristic
+    astar with simple "Manhatten Diagonal" heuristic
     node class objects as start and stop
     and graph class object
+    if state, treats other states as *
     """
 
     graph.reset_astar_values()
+
+    #TODO: Make this prettier
+    start.f = 0
+    start.g = 0
+    start.h = 0
+
     counter = itertools.count()
 
     open = []
@@ -23,40 +32,50 @@ def astar(start, end, graph):
         q = heapq.heappop(open)[-1]
 
         for neigh in q.neighbors:
-            print (f"looking at {neigh}")
+            #print (f"looking at {neigh}")
             if neigh == end:
                 # returner nodene denne er innom
                 # loop gjennom parents
                 print ("Found exit")
+                path = []
                 open = []
 
-                """
-                gg = q
-                while gg != start:
-                    print (q.parent)
-                    gg =  q.parent
-                """
-                print (q.parent.parent.parent.parent)
+                neigh.parent = q
 
-                break
+                while q != start:
+
+                    # To represent the path
+                    # TODO: Make toggleble. This is purely aestetic
+                    q.state = start.state.lower()
+
+                    path.append(q)
+
+                    #print (neigh.parent)
+                    q = q.parent
+
+                return path
 
             g = q.g + 1
             h = abs(neigh.x - end.x) + abs(neigh.y - end.y)
-            f = neigh.g + neigh.h
+            f = g + h
 
-            if f < neigh.f or neigh.f == 0:
+            if f < neigh.f :
                 heapq.heappush(open, (neigh.f, next(counter), neigh))
 
                 neigh.f = f
                 neigh.h = h
                 neigh.g = g
 
+                # TODO: Make this prettier in a way
+
                 neigh.parent = q
                 q.successor.append(neigh)
 
 class node():
 
-    def __init__(self, y, x):
+    def __init__(self, y, x, state):
+
+        self.state = state
 
         self.y = y
         self.x = x
@@ -70,14 +89,16 @@ class node():
         self.successor = []
 
     def __repr__(self):
-        return f"Node at ({self.y},{self.x})"
+        if self.state == "*":
+            return " "
+        else:
+            return f"{self.state}"
+        #return f"Node at ({self.y},{self.x})"
 
-    def find_neighbors(self, d):
+    def find_neighbors(self, d, delete = False):
         """
-        Given dictionary of nodes that exist, adds neighbors
+        Given dictionary of nodes that exist, adds or deletes neighbors
         """
-
-        neighbors = []
 
         search = [
             (0, 1),
@@ -98,9 +119,14 @@ class node():
             #print (res)
 
             if res:
-                neighbors.append(res)
 
-        return neighbors
+                if not delete:
+                    # TODO: Make not ugly
+                    if res.state != "*":
+                        self.neighbors.append(res)
+
+                else:
+                    res.neighbors.remove(self)
 
 class graph():
 
@@ -116,42 +142,79 @@ class graph():
         ]
 
         Make node objects with correct neighbors and  states
+        Will also store location of terminals (any other symbol than . or *)
         """
 
-        # Make nodes if square is in play
-        self.nodes = [
-                node (
-                    i // graph[0],
-                    i % graph[0]
-                )
+        self.width = graph[0]
+        self.nodes = []
+        self.terminals = defaultdict(list)
 
-                for i,n in enumerate(graph[1])
-                if n != "*"
-            ]
+        # Make nodes if square is in play
+        for i,n in enumerate(graph[1]):
+
+            y = i // self.width
+            x = i % self.width
+
+            self.nodes.append(node (
+                y,
+                x,
+                n
+            ))
+
+            if n != "." and n != "*":
+                self.terminals[n].append((y,x))
 
         # Dictionary on coord tuple
         self.node_locations = {
                 (n.y, n.x) : n for n in self.nodes
             }
 
-        for n in self.nodes:
-            n.neighbors = n.find_neighbors(
-                    self.node_locations
+        self.add_all_neighbors()
+
+
+    def display_graph(self, state=False, parent=False):
+        # Plan is to make have different "filters" to display information
+
+        # TODO: Format better
+        counter = 0
+        for i in range(math.ceil(len(self.nodes) / self.width)):
+            print (self.nodes[counter:counter+self.width])
+            counter += self.width
+
+    def set_neighbors(self, conditions):
+        """
+        Attempts to remove all neighbors from given positions
+        Lets terminals have a local environment
+        """
+
+        for c in conditions:
+
+            node = self.node_locations.get(c)
+            node.find_neighbors(
+                    self.node_locations,
+                    delete = True
                 )
 
     def reset_astar_values(self):
         """
-        Reset attr. to none and 0
+        Reset attr. to none and inf
         Unsure if this is best practice, but seeing as im going to have to run a* one million times...
         """
 
         for n in self.nodes:
-            n.f = 0
-            n.g = 0
-            n.h = 0
+            n.f = float("inf")
+            n.g = float("inf")
+            n.h = float("inf")
 
             n.parent = None
             n.successor = []
+
+    def add_all_neighbors(self):
+
+        for n in self.nodes:
+            n.find_neighbors(
+                    self.node_locations
+                )
 
 class flow():
     """
@@ -166,26 +229,48 @@ class flow():
 # first element row width and the rest is flattened data
 test = [
         3,
-        ["A", ".", "A","*", "B", ".","*", "*", "B"],
+        [
+            "A", ".", "A",
+            "*", "B", ".",
+            "*", "*", "B"
+        ],
 ]
 
 test2 = [
     5,
     [
+        "A", ".", ".", ".", "B",
+        ".", "*", ".", ".", ".",
+        "*", "*", ".", ".", ".",
         ".", ".", ".", ".", ".",
-        ".", ".", ".", ".", ".",
-        ".", ".", ".", ".", ".",
-        ".", ".", ".", ".", ".",
-        ".", ".", ".", ".", ".",
+        "A", "*", "B", ".", ".",
     ]
 ]
 
 # Make graph object
 g = graph(test2)
 
-start = g.node_locations.get((1,1))
-end = g.node_locations.get((4,4))
+start = g.node_locations.get(g.terminals["A"][0])
+end = g.node_locations.get(g.terminals["A"][1])
 
-astar(start, end, g)
+g.set_neighbors(g.terminals["B"])
 
-# works. if i want to ill optimize to not check already found neighbors, but, i dont think it will affect it in the long run
+path = astar(start, end, g)
+
+g.add_all_neighbors()
+g.set_neighbors(g.terminals["A"])
+start = g.node_locations.get(g.terminals["B"][0])
+end = g.node_locations.get(g.terminals["B"][1])
+
+path = astar(start,end, g)
+
+g.display_graph()
+print (g.terminals)
+
+# Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
+# Either: Make a copy of the board so i can change states and maka truly local board
+# Or: Check the state of squares i investigate and whether or not they are valid for my starting state
+
+# works. if i want to ill optimize to not check already found neighbors, but, i
+# dont think it will affect it in the long run
+# As of now, it prefers routes on the outside, i believe this is due to the tie breaker
