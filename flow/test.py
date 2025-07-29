@@ -41,10 +41,6 @@ def astar(start, end, graph):
                 neigh.parent = q
 
                 while q != start:
-
-                    # TODO: Make toggleble. This is purely aestetic
-                    q.state = start.state.lower()
-
                     path.append(q)
                     q = q.parent
 
@@ -65,6 +61,12 @@ def astar(start, end, graph):
                 neigh.parent = q
                 q.successor.append(neigh)
 
+                # Visualize moves made by algorithm
+                #q.state = start.state.lower()
+
+        # Visualize
+        #print (graph.display_graph())
+
 class node():
 
     def __init__(self, y, x, state):
@@ -83,11 +85,7 @@ class node():
         self.successor = []
 
     def __repr__(self):
-        # TODO: Find other way of representing cells. Explicit call of state (will do this for final graphic version)
-        if self.state == "*":
-            return " "
-        else:
-            return f"{self.state}"
+        return f"{self.state}"
         #return f"Node at ({self.y},{self.x})"
 
     def find_neighbors(self, d, delete = False):
@@ -121,7 +119,10 @@ class node():
                         self.neighbors.append(res)
 
                 else:
-                    res.neighbors.remove(self)
+                    try:
+                        res.neighbors.remove(self)
+                    except:
+                        None
 
 class graph():
 
@@ -161,7 +162,8 @@ class graph():
                 (n.y, n.x) : n for n in self.nodes
             }
 
-        self.add_all_neighbors()
+        # TODO: Add function to add neighbors to only some nodes. I.e. redo neighbors without redoing entire grid
+        self.add_neighbors()
 
 
     def display_graph(self, state=False, parent=False):
@@ -185,6 +187,7 @@ class graph():
                     self.node_locations,
                     delete = True
                 )
+            c.neighbors = []
 
     def reset_astar_values(self):
         """
@@ -200,10 +203,27 @@ class graph():
             n.parent = None
             n.successor = []
 
-    def add_all_neighbors(self):
+    def add_neighbors(self, nodes = None):
 
-        for n in self.nodes:
+        # TODO: If performance issues, this function might be part of it
+        checked = []
+
+        if not nodes:
+            nodes = self.nodes
+
+        for n in nodes:
+
+            checked.append(n)
+
             n.find_neighbors(
+                    self.node_locations
+                )
+            for neigh in n.neighbors:
+
+                if neigh in checked:
+                    continue
+
+                neigh.find_neighbors(
                     self.node_locations
                 )
 
@@ -245,10 +265,12 @@ test = [
 test2 = [
     5,
     [
-        "A", "B", ".", ".", ".",
-        ".", "*", ".", ".", ".",
+        "A", "D", ".", ".", "D",
+        ".", "C", "*", "C", "B",
+        ".", ".", "*", ".", ".",
         ".", ".", ".", ".", ".",
-        "*", "*", "*", ".", ".",
+        ".", "E", "*", "E", ".",
+        ".", ".", "*", ".", ".",
         "A", ".", ".", ".", "B",
     ]
 ]
@@ -256,25 +278,41 @@ test2 = [
 # Make graph object
 g = graph(test2)
 
-start = g.terminals["A"][0]
-end = g.terminals["A"][1]
+# List of solutions
+sol = []
 
-g.set_neighbors((g.terminals["B"]))
+# Construct list of terminals except current
+# By concatinating the lists not appending (make one long list not nested list)
+all_terminals = []
+for s,t in g.terminals.items():
+    all_terminals += t
 
-path = astar(start, end, g)
+# Visual representation of all paths
+# Encorporate this to show each iteration?
+for state, term in g.terminals.items():
 
-g.add_all_neighbors()
-g.set_neighbors(g.terminals["A"])
+    start = g.terminals[state][0]
+    end = g.terminals[state][1]
 
-start = g.terminals["B"][0]
-end = g.terminals["B"][1]
+    # Terminal nodes without current terminals
+    exclude = [x for x in all_terminals if x not in term]
 
-path = astar(start,end, g)
+    # Reset board to previous state and remove 
+    # (If abnormalities with board state and solutions, maybe something has broken here)
+    ### Funny quirk, add_neighbors THEN set_neighbors (bad logic)
+    g.add_neighbors(all_terminals)
+    g.set_neighbors(exclude)
+
+    # Solve and save
+    path = astar(start, end, g)
+    sol.append((start.state, path))
+
+# Purely aestetic. Wrap into grap function or smth
+for s in sol:
+    for n in s[1]:
+        n.state = s[0].lower()
 
 g.display_graph()
-print (g.terminals)
-print (g.terminals.values())
-
 
 # Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
 # Either: Make a copy of the board so i can change states and maka truly local board
