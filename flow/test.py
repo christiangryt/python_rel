@@ -162,8 +162,12 @@ class graph():
                 (n.y, n.x) : n for n in self.nodes
             }
 
-        # TODO: Add function to add neighbors to only some nodes. I.e. redo neighbors without redoing entire grid
         self.add_neighbors()
+
+        # By concatinating the lists not appending (make one long list not nested list)
+        self.all_terminals = []
+        for t in self.terminals.values():
+            self.all_terminals += t
 
 
     def display_graph(self, state=False, parent=False):
@@ -243,14 +247,56 @@ class flow():
         self.graph = graph
 
         # Each terminal and their restrictions
+        # Might be wrong. I will store conditions in the heap, would be a nice optimization to only store additional conditions form node below
         self.conditions = defaultdict(list)
 
-        for term in self.graph.terminals:
-
-            all_terms = self.graph.terminals.values()
-
     def solve_terminals(self):
-        None
+        """
+        Solve terminals in graph object, returns each solution as list of nodes
+        """
+
+        # TODO: Fix reference to graph. Pain to reference self.graph and then whatever
+
+        solutions = []
+
+        for state, term in self.graph.terminals.items():
+
+            start = self.graph.terminals[state][0]
+            end = self.graph.terminals[state][1]
+
+            # Terminal nodes without current terminals
+            exclude = [x for x in self.graph.all_terminals if x not in term]
+
+            # Reset board to previous state and remove 
+            # (If abnormalities with board state and solutions, maybe something has broken here)
+            ### Funny quirk, add_neighbors THEN set_neighbors (bad logic)
+            self.graph.add_neighbors(self.graph.all_terminals)
+            self.graph.set_neighbors(exclude)
+
+            # Solve and save
+            path = astar(start, end, g)
+            solutions.append((start.state, path))
+
+        return solutions
+
+    def solve_puzzle(self):
+
+        solutions = self.solve_terminals(self)
+        contraints = []
+        # Unsure if i need cost, i want a solution that fills the entire board, so length of graph.nodes is optimals cost?
+        # I certainly dont want the least cost
+        cost = None
+
+        counter = itertools.count()
+
+        # Solutions to check
+        open = []
+        heapq.heappush((cost, counter(next)), solutions)
+
+        while open:
+
+            P = heapq.heappop(open)[-1]
+
 
 # first element row width and the rest is flattened data
 test = [
@@ -275,8 +321,22 @@ test2 = [
     ]
 ]
 
+easy = [
+    5,
+    [
+        "D", ".", ".", ".", ".",
+        ".", ".", ".", ".", ".",
+        ".", ".", "B", ".", ".",
+        "C", "B", "A", ".", "D",
+        "A", ".", ".", ".", "C",
+    ]
+]
+
 # Make graph object
-g = graph(test2)
+g = graph(easy)
+
+# Make flow object
+f = flow(g)
 
 # List of solutions
 sol = []
@@ -287,25 +347,7 @@ all_terminals = []
 for s,t in g.terminals.items():
     all_terminals += t
 
-# Visual representation of all paths
-# Encorporate this to show each iteration?
-for state, term in g.terminals.items():
-
-    start = g.terminals[state][0]
-    end = g.terminals[state][1]
-
-    # Terminal nodes without current terminals
-    exclude = [x for x in all_terminals if x not in term]
-
-    # Reset board to previous state and remove 
-    # (If abnormalities with board state and solutions, maybe something has broken here)
-    ### Funny quirk, add_neighbors THEN set_neighbors (bad logic)
-    g.add_neighbors(all_terminals)
-    g.set_neighbors(exclude)
-
-    # Solve and save
-    path = astar(start, end, g)
-    sol.append((start.state, path))
+sol = f.solve_terminals()
 
 # Purely aestetic. Wrap into grap function or smth
 for s in sol:
