@@ -231,6 +231,13 @@ class graph():
                     self.node_locations
                 )
 
+class cbs_node():
+
+    def __init__(self, constraints, solutions):
+
+        self.constraints = constraints
+        self.solutions = solutions
+
 class flow():
     """
     Plan for self:
@@ -275,11 +282,15 @@ class flow():
 
             # Solve and save
             path = astar(start, end, g)
-            solutions.append((start.state, path))
+
+            # Assuming no path uses same square more than once (since all costs are 1, negative cycles do not exist, therefore any path using the same square is longer than those not using that loop)
+            # Make all solution lists into sets and find intersection
+            solutions.append((start.state, set(path)))
 
         return solutions
 
     def solve_puzzle(self):
+
 
         solutions = self.solve_terminals(self)
         contraints = []
@@ -287,25 +298,32 @@ class flow():
         # I certainly dont want the least cost
         cost = None
 
+        root = cbs_node(constraints, solutions)
+
         counter = itertools.count()
 
         # Solutions to check
         open = []
-        heapq.heappush((cost, counter(next)), solutions)
+        heapq.heappush(open, (len(root.constraints), counter(next)), root)
 
         while open:
 
             P = heapq.heappop(open)[-1]
 
 
+            for sol in P.solutions:
+
+                None
+
+
 # first element row width and the rest is flattened data
 test = [
-        3,
-        [
-            "A", ".", "A",
-            "*", "B", ".",
-            "*", "*", "B"
-        ],
+    3,
+    [
+        "A", ".", "A",
+        "*", "B", ".",
+        "*", "*", "B"
+    ],
 ]
 
 test2 = [
@@ -339,14 +357,6 @@ g = graph(easy)
 f = flow(g)
 
 # List of solutions
-sol = []
-
-# Construct list of terminals except current
-# By concatinating the lists not appending (make one long list not nested list)
-all_terminals = []
-for s,t in g.terminals.items():
-    all_terminals += t
-
 sol = f.solve_terminals()
 
 # Purely aestetic. Wrap into grap function or smth
@@ -355,6 +365,14 @@ for s in sol:
         n.state = s[0].lower()
 
 g.display_graph()
+
+L1 = [2,3,4,5]
+for i, l in enumerate(L1):
+    print (i, l)
+
+L2 = [1,2,3]
+
+print (set(L1).intersection(L2))
 
 # Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
 # Either: Make a copy of the board so i can change states and maka truly local board
