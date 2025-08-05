@@ -117,8 +117,8 @@ class node():
             if res:
 
                 if not delete:
-                    # TODO: Make not ugly
-                    if res.state != "*":
+                    # TODO: Make not ugly and if in check is needed
+                    if res.state != "*" and res not in self.neighbors:
                         self.neighbors.append(res)
 
                 else:
@@ -188,7 +188,7 @@ class graph():
         Attempts to remove all neighbors from given nodes
         Lets terminals have a local environment
 
-        I.e. it os a node, context comes from what calls function
+        I.e. it is a node, context comes from what calls function
         """
 
         for c in conditions:
@@ -269,18 +269,12 @@ class flow():
         self.constraints = []
         self.constraints += self.exclude
 
-        # Each terminal and their restrictions
-        # Might be wrong. I will store conditions in the heap, would be a nice optimization to only store additional conditions form node below
-        self.conditions = defaultdict(list)
-
-    def change_constraints(self, new_constraints):
+    def set_constraints(self, constraints):
         """
-        Adds new constraints while keeping exclude
+        Adds new constraints while keeping terminals part of list
         """
 
-        # TODO: Write better. Should work for now
-        self.constraints = new_constraints
-        self.constraints.append(self.exclude)
+        self.constraints = constraints + self.exclude
 
     def solve_terminal(self):
         """
@@ -292,11 +286,12 @@ class flow():
         ### Funny quirk, add_neighbors THEN set_neighbors (bad logic)
         # Good idea, remove constraint nodes, then add them back in the same function. clean slate for next flow
         # TODO: Fix reference to graph. Pain to reference self.graph and then whatever
-        self.graph.add_neighbors(self.graph.all_terminals)
         self.graph.set_neighbors(self.constraints)
 
         # TODO: Add potential to easily change path finding
         self.path = astar(start, end, g)
+
+        self.graph.add_neighbors(self.constraints)
 
 class CBS_solver(graph):
     """
@@ -306,18 +301,30 @@ class CBS_solver(graph):
 
     def __init__(self, graph):
 
-        # Lookup by state
-        # TODO: Necessary? Since flow is passed with index, this seems only needed to search or do visuals
-        self.flows = {}
+        self.flows = []
         self.graph = graph
 
         # First make flow objects from all_terminals list
         for state, nodes in self.graph.terminals.items():
-            self.flows[state] = flow(self.graph, nodes, state)
+            self.flows.append(flow(self.graph, nodes, state))
+
+    def set_constraints(self, constraints):
+        for flow in self.flows:
+            flow.set_constraints(constraints[flow])
+
+    def amount_constraints(self, constraints):
+
+        ut = []
+        #print (constraints)
+
+        for con in constraints.values():
+            ut += con
+
+        return len(ut)
 
     def solve_terminals(self):
 
-        for flow in self.flows.values():
+        for flow in self.flows:
             flow.solve_terminal()
 
     def find_first_conflict(self):
@@ -329,7 +336,7 @@ class CBS_solver(graph):
         usage = defaultdict(list)
 
         # Might be ugly and stupid
-        for flow in self.flows.values():
+        for flow in self.flows:
 
             path_length = len(flow.path)
 
@@ -344,33 +351,60 @@ class CBS_solver(graph):
                 avg_dist_terminal = sum([x[1] for x in locs]) / len(locs)
                 conflicts[avg_dist_terminal].append((node,flows))
 
-        print (conflicts)
+        #print (conflicts[min(conflicts.keys())][0])
 
         # Return first, find more elegent later (that cares for path length or smth)
-        return conflicts[min(conflicts.keys())][0]
+        return conflicts[min(conflicts.keys())]
 
     def solve_puzzle(self):
 
-        self.solve_terminals()
-        constraints = []
+        # Flow + list of constraints
+        constraints = defaultdict(list)
 
         # TODO: Implement Board Fill heuristic
         cost = None
-        root = cbs_node(constraints)
+        constraint_cost = self.amount_constraints(constraints)
         counter = itertools.count()
+
+        root = cbs_node(constraints)
 
         # Solutions to check
         open = []
-        heapq.heappush(open, (len(root.constraints), next(counter), root))
+        heapq.heappush(open, (constraint_cost, next(counter), root))
 
         while open:
+        #for i in range (2):
 
             # Least constraints
             P = heapq.heappop(open)[-1]
-            print (P.solutions)
 
-            collissions = self.find_first_conflict(P.solutions)
+            self.set_constraints(P.constraints)
+            self.solve_terminals()
+
+            # Purely aestetic. Wrap into grap function or smth
+            for flow in self.flows:
+                for node in flow.path:
+                    node.state = flow.state.lower()
+            self.graph.display_graph()
+
+            collissions = self.find_first_conflict()
             print (collissions)
+
+            # Solution is valid if no collissions
+            if len(collissions) == 0:
+                print ("Solution Found")
+                self.graph.display_board()
+                return self.flows
+
+            # Pick first one, fix later
+            node, flows = collissions[0]
+            for flow in flows:
+
+                constraints[flow].append(node)
+                new_cbs_node = cbs_node(constraints)
+                node_cost = self.amount_constraints(constraints)
+
+                heapq.heappush(open, (node_cost, next(counter), new_cbs_node))
 
 # first element row width and the rest is flattened data
 test = [
@@ -434,24 +468,15 @@ coll = [
 ]
 
 # Make graph object
-g = graph(medium)
+g = graph(easy)
 
 # Solver
 cbs = CBS_solver(g)
 
-cbs.solve_terminals()
+cbs.solve_puzzle()
 
-for state,flow in cbs.flows.items():
-    for node in flow.path:
-        node.state = state.lower()
+
 g.display_graph()
-
-cbs.find_first_conflict()
-
-# Purely aestetic. Wrap into grap function or smth
-#for s in sol:
-#    for n in s[1]:
-#        n.state = s[0].lower()
 
 # Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
 # Either: Make a copy of the board so i can change states and maka truly local board
