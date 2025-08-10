@@ -25,6 +25,8 @@ Have not yet found a description of how to go forth finding these paths. There a
 
 I therefore want to simply try my hand at making a backtracking algorithm using node objects with defined neighbors and working from there.     
 
+Now that it works, work is needed to make sure it is somewhat efficient. First priority is not bothering checking bad paths (i.e. unreachable nodes blocked by path, flows not being able to reach terminal based on other paths).
+
 ### Conflict based solver
 
 Find shortest path per agent. If there are conflicts, expand into new node and solve conflict.  
