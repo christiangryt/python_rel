@@ -290,6 +290,7 @@ class flow():
         # Good idea, remove constraint nodes, then add them back in the same function. clean slate for next flow
         # TODO: Fix reference to graph. Pain to reference self.graph and then whatever
         print(f"{self.state} : {[(x.y, x.x, x.state) for x in self.constraints]}")
+
         self.graph.set_neighbors(self.constraints)
 
         if self.state == "B":
@@ -298,7 +299,7 @@ class flow():
         # TODO: Add potential to easily change path finding
         self.path = astar(start, end, g)
 
-        self.graph.add_neighbors(self.constraints)
+        self.graph.add_neighbors()
 
 class CBS_solver(graph):
     """
@@ -336,7 +337,7 @@ class CBS_solver(graph):
 
     def find_first_conflict(self):
         """
-        Finds approximation for error with no prior error based on distance to terminals
+        Finds approximation to error with no prior error based on distance to terminals
         """
 
         # Flow and path index
@@ -362,7 +363,7 @@ class CBS_solver(graph):
 
         #print (conflicts[min(conflicts.keys())][0])
 
-        # Return first, find more elegent later (that cares for path length or smth)
+        # TODO: Return first, find more elegent later (that cares for path length or smth)
         try:
             return conflicts[min(conflicts.keys())]
         except:
@@ -398,7 +399,8 @@ class CBS_solver(graph):
             for state, con in constraints.items():
                 print (f"{state}: {*[(x.y,x.x) for x in con],}")
 
-            # TODO: Fix issue regarding multiple constraints resulting in no constriants
+            # TODO: Fix issue regarding constraints not being applied. Might have to do with same constraint being passed for different flows.
+            # No new objects are created (same id)
             self.set_constraints(constraints)
             self.solve_terminals()
 
@@ -414,6 +416,7 @@ class CBS_solver(graph):
 
             # Collissions return none, one flow didnt have a path
             if not collissions:
+                print ("No path")
                 continue
 
             # DEBUG
@@ -432,7 +435,6 @@ class CBS_solver(graph):
                 for flow in flows:
 
                     new_constraints = copy.deepcopy(constraints)
-                    #new_constraints[flow.state].append(node)
                     new_constraints[flow.state].add(node)
 
                     # TODO: Make not stupid
@@ -532,6 +534,20 @@ g = graph(easy)
 
 # Solver
 cbs = CBS_solver(g)
+
+"""
+cc = None
+for f in cbs.flows:
+    if f.state == "B":
+        cc = f
+
+cc.constraints.add(g.node_locations[(4,1)])
+cc.constraints.add(g.node_locations[(2,1)])
+
+g.set_neighbors(cc.constraints)
+print (g.node_locations[(2,1)].neighbors)
+print (cc.constraints)
+"""
 
 cbs.solve_puzzle()
 
