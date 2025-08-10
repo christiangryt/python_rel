@@ -1,11 +1,10 @@
 import heapq
-import copy
 import math
 from collections import defaultdict
 # TODO:chatGPT løsning enn så lenge
 import itertools
 
-def astar(start, end, graph):
+def astar(start, end, graph, constraints):
     """
     astar with simple "Manhatten Diagonal" heuristic
     node class objects as start and stop
@@ -47,23 +46,25 @@ def astar(start, end, graph):
 
                 return path
 
-            g = q.g + 1
-            h = abs(neigh.x - end.x) + abs(neigh.y - end.y)
-            f = g + h
+            elif neigh not in constraints:
 
-            if f < neigh.f :
-                heapq.heappush(open, (neigh.f, next(counter), neigh))
+                g = q.g + 1
+                h = abs(neigh.x - end.x) + abs(neigh.y - end.y)
+                f = g + h
 
-                neigh.f = f
-                neigh.h = h
-                neigh.g = g
+                if f < neigh.f :
+                    heapq.heappush(open, (neigh.f, next(counter), neigh))
 
-                # TODO: Make this prettier in a way
-                neigh.parent = q
-                q.successor.append(neigh)
+                    neigh.f = f
+                    neigh.h = h
+                    neigh.g = g
 
-                # Visualize moves made by algorithm
-                #q.state = start.state.lower()
+                    # TODO: Make this prettier in a way
+                    neigh.parent = q
+                    q.successor.append(neigh)
+
+                    # Visualize moves made by algorithm
+                    #q.state = start.state.lower()
 
         # Visualize
         #print (graph.display_graph())
@@ -176,7 +177,7 @@ class graph():
         """
 
         for node in self.nodes:
-            if node not in self.all_terminals:
+            if node not in self.all_terminals and node.state != "*":
                 node.state = "."
 
     def display_graph(self, paths_alone=False):
@@ -291,15 +292,16 @@ class flow():
         # TODO: Fix reference to graph. Pain to reference self.graph and then whatever
         print(f"{self.state} : {[(x.y, x.x, x.state) for x in self.constraints]}")
 
-        self.graph.set_neighbors(self.constraints)
+        #self.graph.set_neighbors(self.constraints)
+        #print (self.constraints)
 
         if self.state == "B":
             print (self.graph.node_locations[(2,1)].neighbors)
 
         # TODO: Add potential to easily change path finding
-        self.path = astar(start, end, g)
+        self.path = astar(start, end, g, self.constraints)
 
-        self.graph.add_neighbors()
+        #self.graph.add_neighbors()
 
 class CBS_solver(graph):
     """
@@ -386,8 +388,8 @@ class CBS_solver(graph):
         open = []
         heapq.heappush(open, (constraint_cost, next(counter), root))
 
-        #while open:
-        for i in range (10):
+        while open:
+        #for i in range (10):
 
             print ("---")
 
@@ -405,11 +407,12 @@ class CBS_solver(graph):
             self.solve_terminals()
 
             # Purely aestetic. Wrap into grap function or smth
-            self.graph.reset_node_states()
             for flow in self.flows:
+                print (" ")
+                self.graph.reset_node_states()
                 for node in flow.path:
                     node.state = flow.state.lower()
-            self.graph.display_graph()
+                self.graph.display_graph()
 
             # Pick first one, fix later
             collissions = self.find_first_conflict()
@@ -419,22 +422,28 @@ class CBS_solver(graph):
                 print ("No path")
                 continue
 
+
+            # Solution is valid if no collissions
+            # TODO: Rework how i end the search, this is pure jank
+            if collissions == True:
+                print ("\nSolution Found")
+                self.graph.reset_node_states()
+                for flow in self.flows:
+                    for node in flow.path:
+                        node.state = flow.state.lower()
+                self.graph.display_graph()
+                return self.flows
+
             # DEBUG
             for colli in collissions:
                 print (f"{colli[0].y, colli[0].x}: {*[x.state for x in colli[1]],}")
-
-            # Solution is valid if no collissions
-            if collissions == True:
-                print ("Solution Found")
-                self.graph.display_graph()
-                return self.flows
 
             for collission in collissions:
 
                 node, flows = collission
                 for flow in flows:
 
-                    new_constraints = copy.deepcopy(constraints)
+                    new_constraints = {state: set(nodes) for state, nodes in constraints.items()}
                     new_constraints[flow.state].add(node)
 
                     # TODO: Make not stupid
@@ -530,24 +539,10 @@ simple = [
 ]
 
 # Make graph object
-g = graph(easy)
+g = graph(medium)
 
 # Solver
 cbs = CBS_solver(g)
-
-"""
-cc = None
-for f in cbs.flows:
-    if f.state == "B":
-        cc = f
-
-cc.constraints.add(g.node_locations[(4,1)])
-cc.constraints.add(g.node_locations[(2,1)])
-
-g.set_neighbors(cc.constraints)
-print (g.node_locations[(2,1)].neighbors)
-print (cc.constraints)
-"""
 
 cbs.solve_puzzle()
 
