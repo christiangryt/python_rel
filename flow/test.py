@@ -152,12 +152,11 @@ class graph():
             y = i // self.width
             x = i % self.width
 
-            # TODO: Perhaps change to better name
-            nnode = node(y, x, n)
-            self.nodes.append(nnode)
+            new_node = node(y, x, n)
+            self.nodes.append(new_node)
 
             if n != "." and n != "*":
-                self.terminals[n].append(nnode)
+                self.terminals[n].append(new_node)
 
         # Dictionary on coord tuple
         self.node_locations = {
@@ -170,6 +169,9 @@ class graph():
         self.all_terminals = []
         for t in self.terminals.values():
             self.all_terminals += t
+
+        # Non terminals and * nodes
+        self.usable_nodes = [x for x in self.nodes if x not in self.all_terminals and x.state != "*"]
 
     def reset_node_states(self):
         """
@@ -245,9 +247,10 @@ class graph():
 
 class cbs_node():
 
-    def __init__(self, constraints):
+    def __init__(self, constraints, paths):
 
         self.constraints = constraints
+        self.paths = paths
 
 class flow():
     """
@@ -287,16 +290,8 @@ class flow():
 
         start, end = self.terminals
 
-        ### Funny quirk, add_neighbors THEN set_neighbors (bad logic)
-        # Good idea, remove constraint nodes, then add them back in the same function. clean slate for next flow
-        # TODO: Fix reference to graph. Pain to reference self.graph and then whatever
-        print(f"{self.state} : {[(x.y, x.x, x.state) for x in self.constraints]}")
-
-        #self.graph.set_neighbors(self.constraints)
-        #print (self.constraints)
-
-        if self.state == "B":
-            print (self.graph.node_locations[(2,1)].neighbors)
+        # DEBUG
+        #print(f"{self.state} : {[(x.y, x.x, x.state) for x in self.constraints]}")
 
         # TODO: Add potential to easily change path finding
         self.path = astar(start, end, g, self.constraints)
@@ -318,6 +313,16 @@ class CBS_solver(graph):
         for state, nodes in self.graph.terminals.items():
             self.flows.append(flow(self.graph, nodes, state))
 
+    def board_fill(self, paths):
+
+        used_nodes = set()
+        for _, path in paths:
+            for node in path:
+                used_nodes.add(node)
+
+        # + 1 to inhibit any divide by 0 error
+        return  len(self.graph.usable_nodes) / (len(used_nodes) + 1 )
+
     def set_constraints(self, constraints):
         for flow in self.flows:
             flow.set_constraint(constraints[flow.state])
@@ -334,10 +339,17 @@ class CBS_solver(graph):
 
     def solve_terminals(self):
 
+        paths = []
+
         for flow in self.flows:
             flow.solve_terminal()
 
-    def find_first_conflict(self):
+            # Make sure no new objects are created from this
+            paths.append((flow, flow.path))
+
+        return paths
+
+    def find_first_conflict(self, paths):
         """
         Finds approximation to error with no prior error based on distance to terminals
         """
@@ -346,13 +358,13 @@ class CBS_solver(graph):
         usage = defaultdict(list)
 
         # Might be ugly and stupid
-        for flow in self.flows:
+        for flow, path in paths:
 
-            path_length = len(flow.path)
+            path_length = len(path)
             if path_length == 0:
                 return False
 
-            for node_index, node in enumerate(flow.path):
+            for node_index, node in enumerate(path):
                 distance_from_terminal = min(node_index, path_length - node_index - 1)
                 usage[node].append((flow, distance_from_terminal))
 
@@ -378,50 +390,44 @@ class CBS_solver(graph):
         constraints = defaultdict(set)
 
         # TODO: Implement Board Fill heuristic
-        cost = None
         constraint_cost = self.amount_constraints(constraints)
         counter = itertools.count()
+        self.set_constraints(constraints)
+        paths = self.solve_terminals()
+        cost = self.board_fill(paths)
 
-        root = cbs_node(constraints)
+        root = cbs_node(constraints, paths)
 
         # Solutions to check
         open = []
-        heapq.heappush(open, (constraint_cost, next(counter), root))
+        heapq.heappush(open, (constraint_cost, cost, next(counter), root))
 
-        while open:
-        #for i in range (10):
+        #while open:
+        for i in range(10):
 
             print ("---")
 
             # Least constraints
             P = heapq.heappop(open)[-1]
-            constraints = P.constraints
 
-            # DEBUG
-            for state, con in constraints.items():
-                print (f"{state}: {*[(x.y,x.x) for x in con],}")
+            ## DEBUG
+            #for state, con in P.constraints.items():
+            #    print (f"{state}: {*[(x.y,x.x) for x in con],}")
 
-            # TODO: Fix issue regarding constraints not being applied. Might have to do with same constraint being passed for different flows.
-            # No new objects are created (same id)
-            self.set_constraints(constraints)
-            self.solve_terminals()
+            ## Purely aestetic. Wrap into grap function or smth
+            #for flow, path in P.paths:
+            #    print (" ")
+            #    self.graph.reset_node_states()
+            #    for node in path:
+            #        node.state = flow.state.lower()
+            #    self.graph.display_graph()
 
-            # Purely aestetic. Wrap into grap function or smth
-            for flow in self.flows:
-                print (" ")
-                self.graph.reset_node_states()
-                for node in flow.path:
-                    node.state = flow.state.lower()
-                self.graph.display_graph()
+            collissions = self.find_first_conflict(P.paths)
 
-            # Pick first one, fix later
-            collissions = self.find_first_conflict()
-
-            # Collissions return none, one flow didnt have a path
+            # Collissions return False, one flow didnt have a path
             if not collissions:
                 print ("No path")
                 continue
-
 
             # Solution is valid if no collissions
             # TODO: Rework how i end the search, this is pure jank
@@ -438,21 +444,36 @@ class CBS_solver(graph):
             for colli in collissions:
                 print (f"{colli[0].y, colli[0].x}: {*[x.state for x in colli[1]],}")
 
-            for collission in collissions:
+            # Make 2 nodes, reduce breadth or smth
+            node, flows = collissions[0]
+            for flow in flows:
 
-                node, flows = collission
-                for flow in flows:
+                #new_constraints = {state: set(nodes) for state, nodes in P.constraints.items()}
+                new_constraints = defaultdict(set, {
+                    state: set(nodes) for state, nodes in P.constraints.items()
+                })
+                new_constraints[flow.state].add(node)
 
-                    new_constraints = {state: set(nodes) for state, nodes in constraints.items()}
-                    new_constraints[flow.state].add(node)
+                # DEBUG
+                for state, con in new_constraints.items():
+                    print (f"{state}: {*[(x.y,x.x) for x in con],}")
 
-                    # TODO: Make not stupid
-                    #new_constraints[flow.state] = set(new_constraints[flow.state])
+                # Purely aestetic. Wrap into grap function or smth
+                for flow, path in P.paths:
+                    print (" ")
+                    self.graph.reset_node_states()
+                    for node in path:
+                        node.state = flow.state.lower()
+                    self.graph.display_graph()
 
-                    new_cbs_node = cbs_node(new_constraints)
-                    node_cost = self.amount_constraints(new_constraints)
+                self.set_constraints(new_constraints)
+                new_paths = self.solve_terminals()
+                new_cost = self.board_fill(new_paths)
 
-                    heapq.heappush(open, (node_cost, next(counter), new_cbs_node))
+                new_cbs_node = cbs_node(new_constraints, new_paths)
+                node_cost = self.amount_constraints(new_constraints)
+
+                heapq.heappush(open, (node_cost, new_cost, next(counter), new_cbs_node))
 
 # first element row width and the rest is flattened data
 test = [
@@ -545,6 +566,8 @@ g = graph(medium)
 cbs = CBS_solver(g)
 
 cbs.solve_puzzle()
+
+#print(cbs.board_fill())
 
 # Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
 # Either: Make a copy of the board so i can change states and maka truly local board
