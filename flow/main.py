@@ -107,11 +107,3 @@ g = graph(less_hard)
 cbs = CBS_solver(g)
 
 cbs.solve_puzzle()
-
-# Saving all terminals, i can easily change their state to * for other terminal colors such that they appear as not in play
-# Either: Make a copy of the board so i can change states and maka truly local board
-# Or: Check the state of squares i investigate and whether or not they are valid for my starting state
-
-# works. if i want to ill optimize to not check already found neighbors, but, i
-# dont think it will affect it in the long run
-# As of now, it prefers routes on the outside, i believe this is due to the tie breaker
