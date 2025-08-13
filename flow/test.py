@@ -385,6 +385,9 @@ class CBS_solver(graph):
 
     def solve_puzzle(self):
 
+        # TODO: Expand logging
+        iteration_count = 0
+
         # Flow + list of constraints
         #constraints = defaultdict(list)
         constraints = defaultdict(set)
@@ -402,25 +405,15 @@ class CBS_solver(graph):
         open = []
         heapq.heappush(open, (constraint_cost, cost, next(counter), root))
 
-        #while open:
-        for i in range(10):
+        while open:
+        #for i in range(10):
 
             print ("---")
 
+            iteration_count += 1
+
             # Least constraints
             P = heapq.heappop(open)[-1]
-
-            ## DEBUG
-            #for state, con in P.constraints.items():
-            #    print (f"{state}: {*[(x.y,x.x) for x in con],}")
-
-            ## Purely aestetic. Wrap into grap function or smth
-            #for flow, path in P.paths:
-            #    print (" ")
-            #    self.graph.reset_node_states()
-            #    for node in path:
-            #        node.state = flow.state.lower()
-            #    self.graph.display_graph()
 
             collissions = self.find_first_conflict(P.paths)
 
@@ -434,10 +427,11 @@ class CBS_solver(graph):
             if collissions == True:
                 print ("\nSolution Found")
                 self.graph.reset_node_states()
-                for flow in self.flows:
-                    for node in flow.path:
+                for flow, path in P.paths:
+                    for node in path:
                         node.state = flow.state.lower()
                 self.graph.display_graph()
+                print (iteration_count)
                 return self.flows
 
             # DEBUG
@@ -447,6 +441,9 @@ class CBS_solver(graph):
             # Make 2 nodes, reduce breadth or smth
             node, flows = collissions[0]
             for flow in flows:
+
+                # TODO: ????? Why does this work
+                node = collissions[0][0]
 
                 #new_constraints = {state: set(nodes) for state, nodes in P.constraints.items()}
                 new_constraints = defaultdict(set, {
@@ -458,6 +455,13 @@ class CBS_solver(graph):
                 for state, con in new_constraints.items():
                     print (f"{state}: {*[(x.y,x.x) for x in con],}")
 
+                self.set_constraints(new_constraints)
+                new_paths = self.solve_terminals()
+                new_cost = self.board_fill(new_paths)
+
+                new_cbs_node = cbs_node(new_constraints, new_paths)
+                node_cost = self.amount_constraints(new_constraints)
+
                 # Purely aestetic. Wrap into grap function or smth
                 for flow, path in P.paths:
                     print (" ")
@@ -465,13 +469,6 @@ class CBS_solver(graph):
                     for node in path:
                         node.state = flow.state.lower()
                     self.graph.display_graph()
-
-                self.set_constraints(new_constraints)
-                new_paths = self.solve_terminals()
-                new_cost = self.board_fill(new_paths)
-
-                new_cbs_node = cbs_node(new_constraints, new_paths)
-                node_cost = self.amount_constraints(new_constraints)
 
                 heapq.heappush(open, (node_cost, new_cost, next(counter), new_cbs_node))
 
@@ -516,13 +513,15 @@ easy = [
 ]
 
 medium = [
-    5,
+    7,
     [
-        "D", ".", ".", ".", ".",
-        "B", ".", ".", "B", ".",
-        "*", ".", ".", ".", ".",
-        "C", ".", "A", ".", "D",
-        "A", ".", ".", ".", "C",
+        ".", ".", ".", ".", "A", ".", ".",
+        ".", "B", ".", ".", ".", "C", ".",
+        ".", "C", ".", ".", ".", "B", ".",
+        ".", "A", "D", ".", ".", ".", ".",
+        ".", "D", "E", ".", "E", ".", ".",
+        ".", ".", ".", ".", ".", ".", ".",
+        ".", ".", ".", ".", ".", ".", ".",
     ]
 ]
 
