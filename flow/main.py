@@ -1,4 +1,5 @@
 from cbs import *
+from visualize import *
 
 # first element row width and the rest is flattened data
 test = [
