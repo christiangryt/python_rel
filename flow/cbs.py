@@ -59,16 +59,19 @@ class cbs_node():
         self.constraints = constraints
         self.paths = paths
 
-class CBS_solver(graph):
+class CBS_solver():
     """
     Note to self, this is the object that should make CBS_nodes and handle solving.
     Flow class keeps track of a single path, this keeps track of all tracks
     """
 
-    def __init__(self, graph):
+    def __init__(self, graph, with_curses=False):
 
         self.flows = []
         self.graph = graph
+
+        # output to curses
+        self.with_curses = with_curses
 
         # First make flow objects from all_terminals list
         for state, nodes in self.graph.terminals.items():
@@ -150,10 +153,8 @@ class CBS_solver(graph):
         iteration_count = 0
 
         # Flow + list of constraints
-        #constraints = defaultdict(list)
         constraints = defaultdict(set)
 
-        # TODO: Implement Board Fill heuristic
         constraint_cost = self.amount_constraints(constraints)
         counter = itertools.count()
         self.set_constraints(constraints)
@@ -167,7 +168,6 @@ class CBS_solver(graph):
         heapq.heappush(open, (constraint_cost, cost, next(counter), root))
 
         while open:
-        #for i in range(10):
 
             print ("---")
 
@@ -195,6 +195,7 @@ class CBS_solver(graph):
                 print (iteration_count)
                 return self.flows
 
+            # TODO: Prettier logging. All DEBUG must play nice with curses
             # DEBUG
             for colli in collissions:
                 print (f"{colli[0].y, colli[0].x}: {*[x.state for x in colli[1]],}")

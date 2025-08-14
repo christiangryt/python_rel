@@ -72,6 +72,7 @@ class graph():
         """
 
         self.width = graph[0]
+        self.height = math.ceil(len(graph[1]) / self.width)
         self.nodes = []
         self.terminals = defaultdict(list)
 
