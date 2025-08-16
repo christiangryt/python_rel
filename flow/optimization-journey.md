@@ -15,3 +15,7 @@ Easy Board (5x5):
     With Board Fill: 14 Iterations
 
 Great Success. Still cannot Tackle Hard map i made
+
+### Problems
+
+Seems order of heap stacking affects if puzzle becomes solved. The program is not fast enough, i need to optimze more
