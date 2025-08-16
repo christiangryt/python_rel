@@ -65,7 +65,7 @@ class CBS_solver():
     Flow class keeps track of a single path, this keeps track of all tracks
     """
 
-    def __init__(self, graph, with_curses=False):
+    def __init__(self, graph,drawer=None, with_curses=False):
 
         self.flows = []
         self.graph = graph
@@ -112,6 +112,17 @@ class CBS_solver():
             paths.append((flow, flow.path))
 
         return paths
+
+    # Should CBS have any visuals?
+    def display_all_flows(self, with_curses=False):
+        """
+        with_curses:
+            False   Print each board
+
+            True    Return List of nested boards
+        """
+
+        None
 
     def find_first_conflict(self, paths):
         """

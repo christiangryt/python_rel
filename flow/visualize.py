@@ -6,29 +6,35 @@ from collections import defaultdict
 
 class path_window():
 
-    def __init__(self, height, width,  begin_y, begin_x, padding):
+    def __init__(self, height, width,  begin_y, begin_x, padding=0):
         """
         New window object. Width and height are graph dimensions
         """
 
+        # TODO: To use padding or not
         self.begin_x = begin_x
         self.begin_y = begin_y
 
         self.padding = padding
-        self.width = width
+        self.width = width + (padding * width - 2)
         self.height = height
 
-        # IDK if this works
         self.win = curses.newwin(self.height, self.width, self.begin_x, self.begin_y)
 
-    def draw_graph(self, graph=None):
-        """
-        Plan: Draw path. Graph reset from outside loop. (see if best option)
+    def draw_line(self, n, line):
 
-        Expects line by line. Might restructure graph to be list of lists. This should be immune to any of those changes
+        self.win.addstr(n,0, '{}'.format(line))
+
+    def draw_graph(self, graph):
+        """
+        Graph object (i only use width and list of nodes)
         """
 
-        None
+        for i in range (graph.height-1):
+            self.draw_line(
+                    i,
+                    graph.display_one_line_graph(i, self.padding)
+                )
 
 class drawer():
 
@@ -55,7 +61,7 @@ class drawer():
         # TODO: Smart solution here.
         self.windows = defaultdict(path_window)
 
-        self.ww = path_window(1, 5, 0, 0, 1)
+        self.ww = path_window(self.graph.width, self.graph.height, 0, 0, 1)
         #self.windows["D"] = ww
 
     def draw(self):

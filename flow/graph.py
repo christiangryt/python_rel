@@ -112,13 +112,20 @@ class graph():
             if node not in self.all_terminals and node.state != "*":
                 node.state = "."
 
-    def display_graph(self, paths_alone=False):
-        # TODO: Format better
-        counter = 0
+    def display_one_line_graph(self, n, padding=1):
 
-        for i in range(math.ceil(len(self.nodes) / self.width)):
-            print (self.nodes[counter:counter+self.width])
-            counter += self.width
+        # Adds padding width between each char
+        line = (padding*" ").join([
+                node.state for node in
+                self.nodes[self.width*n:self.width*(n+1)]
+            ])
+
+        return line
+
+    def display_graph(self, paths_alone=False):
+
+        for i in range(self.height):
+            print (self.display_one_line_graph(i))
 
     def set_neighbors(self, conditions):
         """
