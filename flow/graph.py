@@ -108,6 +108,7 @@ class graph():
         Sets states to default symbol ".". keeps terminals same state
         """
 
+        # TODO Enable reset of given nodes?
         for node in self.nodes:
             if node not in self.all_terminals and node.state != "*":
                 node.state = "."
