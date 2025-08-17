@@ -12,17 +12,20 @@ cbs = CBS_solver(g)
 
 def main(stdscr):
 
-    dd = drawer(g, stdscr)
+    dd = drawer(g, stdscr, cbs.flows)
     stdscr.clear()
 
-    #dd.ww.win.addstr(0,0, 'HH')
-    dd.ww.draw_graph(g)
+    stdscr.refresh()
 
-    #stdscr.addstr(1,0, '{}'.format(g.height))
+    #dd.ww.win.addstr(0,0, 'HH')
+    #dd.ww.draw_graph(g)
+    for window in dd.windows.values():
+        window.draw_graph(g)
+        window.win.refresh()
+
+    #stdscr.addstr(10,0, '{}'.format(stdscr.getmaxyx()))
     #stdscr.addstr(2,0, '{}'.format(dd.ww.height))
 
-    stdscr.refresh()
-    dd.ww.win.refresh()
     stdscr.getkey()
 
 wrapper(main)
