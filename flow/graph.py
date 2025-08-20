@@ -142,13 +142,16 @@ class graph():
                 )
             c.neighbors = []
 
-    def reset_astar_values(self):
+    def reset_astar_values(self, nodes=None):
         """
         Reset attr. to none and inf
         Unsure if this is best practice, but seeing as im going to have to run a* one million times...
         """
 
-        for n in self.nodes:
+        if nodes == None:
+            nodes = self.nodes
+
+        for n in nodes:
             n.f = float("inf")
             n.g = float("inf")
             n.h = float("inf")
