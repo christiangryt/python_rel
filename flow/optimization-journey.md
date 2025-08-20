@@ -1,5 +1,9 @@
 # Optimize solver
 
+Use builtin python: cPython     
+
+    Builtin python profiler
+
 ## Board fill Heuristic
 Inverse proportion of free nodes to used nodes in all paths -> Less path overlap and more of the board used.
 When tested on true medium board (7x7):

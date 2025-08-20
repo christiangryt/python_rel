@@ -49,7 +49,7 @@ class drawer():
         self.graph_height = self.graph.height
 
         # Padding
-        self.window_padding = 3
+        self.window_padding = 5
         self.character_padding = 1
         self.window_margin = 30     # Space from edge
 
@@ -72,19 +72,22 @@ class drawer():
         self.start_x = self.window_margin + (rest_space_window_margin // 2)
         self.end_x = self.screen_width - self.window_margin - (rest_space_window_margin // 2)
 
-        self.max_windows_per_row = (self.screen_width - 2 * self.window_margin) // (self.window_width + self.window_padding)
+        self.max_windows_per_row = (self.screen_width - 2 * self.window_margin) // (self.window_width + 2 * self.window_padding)
 
+        """
         print (self.start_x,
                self.end_x,
                self.max_windows_per_row,
                rest_space_window_margin)
+        """
 
         for i, flow in enumerate(flows):
             self.windows[flow.state] = path_window(
                     self.window_height,
                     self.window_width,
-                    self.start_x + i % self.max_windows_per_row * (self.window_width + self.window_padding),
-                    (i // self.max_windows_per_row) * (self.window_height + self.window_padding), self.character_padding
+                    self.start_x + ((i % self.max_windows_per_row) * (self.window_width + 2 * self.window_padding)),
+                    (i // self.max_windows_per_row) * (self.window_height + self.window_padding - 2),
+                    self.character_padding
                 )
 
     def draw(self):
