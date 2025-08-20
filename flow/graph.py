@@ -16,7 +16,6 @@ class node():
 
         self.neighbors = []
         self.parent = None
-        self.successor = []
 
     def __repr__(self):
         return f"{self.state}"
@@ -109,9 +108,8 @@ class graph():
         """
 
         # TODO Enable reset of given nodes?
-        for node in self.nodes:
-            if node not in self.all_terminals and node.state != "*":
-                node.state = "."
+        for node in self.usable_nodes:
+            node.state = "."
 
     def display_one_line_graph(self, n, padding=1):
 
@@ -156,7 +154,6 @@ class graph():
             n.h = float("inf")
 
             n.parent = None
-            n.successor = []
 
     def add_neighbors(self, nodes = None):
 

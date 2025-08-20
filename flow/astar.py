@@ -59,7 +59,6 @@ def astar(start, end, graph, constraints):
 
                     # TODO: Make this prettier in a way
                     neigh.parent = q
-                    q.successor.append(neigh)
 
                     # Visualize moves made by algorithm
                     #q.state = start.state.lower()
