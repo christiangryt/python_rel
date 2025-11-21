@@ -3,8 +3,10 @@ import math
 import random
 
 pygame.init()                           # starte opp pygame
-size = width, height = 1020, 840        # Bane
+size = width, height = 1520, 1040        # Bane
 clock = pygame.time.Clock()             # Klokka
+
+n = 150
 
 black = (0,0,0)
 white = (255,255,255)
@@ -25,9 +27,12 @@ class boid(pygame.sprite.Sprite):
 
         self.screen = pygame.display.get_surface()
         self.rect = pygame.Rect(position[0], position[1], radius, radius)
-        #self.area = screen.get_rect()
         self.speed = pygame.math.Vector2(speed)
         self.position = pygame.math.Vector2(position)
+
+        # Params
+        self.max_speed = 5
+        self.sight_range = 200
 
     def update(self):
         newpos = self.calcnewpos(self.rect, self.speed)
@@ -43,42 +48,6 @@ class boid(pygame.sprite.Sprite):
     # ==============
     # Rules for Boids
     # ==============
-    def toward_center(self, other_boids):
-
-        perceived_center = pygame.math.Vector2()
-
-        for boid in other_boids:
-            if boid != self:
-                pos = boid.get_pos_vector()
-                perceived_center = perceived_center + pos
-
-        perceived_center = perceived_center / (len(other_boids) - 1)
-        pygame.draw.rect(screen, black, pygame.Rect(perceived_center[0], perceived_center[1], 5, 5))
-
-        return (perceived_center - self.get_pos_vector()) / math.exp(9)
-
-    def avoid_obstacle(self, other_boids):
-        c = pygame.math.Vector2()
-
-        for boid in other_boids:
-            if boid != self:
-                if pygame.math.Vector2.length(boid.get_pos_vector() - self.get_pos_vector()) < 30:
-                    c = c - (boid.get_pos_vector() - self.get_pos_vector())
-
-        return c / 30
-
-    def match_velocity(self, other_boids):
-
-        perceived_velocity = pygame.math.Vector2()
-
-        for boid in other_boids:
-            if boid != self:
-                perceived_velocity = perceived_velocity + boid.speed
-
-        perceived_velocity = perceived_velocity / (len(other_boids) - 1)
-
-        return (perceived_velocity - self.speed) / math.exp(5)
-
     def dodge_walls(self):
 
         away_from_wall_x = 0
@@ -98,25 +67,52 @@ class boid(pygame.sprite.Sprite):
 
         return pygame.math.Vector2(away_from_wall_x, away_from_wall_y) / 5
 
-    def update_movement(self):
+    def update_movement(self, other_boids):
         """
         Oppdater speed vektor, update tar resten
         """
 
-        max_speed = 5
-
-        center_movement = self.toward_center(instanser)
-        avoid_movement = self.avoid_obstacle(instanser)
-        match_movement = self.match_velocity(instanser)
+        c = pygame.math.Vector2()
+        perceived_velocity = pygame.math.Vector2()
+        perceived_center = pygame.math.Vector2()
         dodge_movement = self.dodge_walls()
 
-        self.speed = self.speed + center_movement + avoid_movement + match_movement + dodge_movement
-        #self.speed = self.speed + center_movement + match_movement + dodge_movement
-        #self.speed = self.speed + dodge_movement
+        boids_in_range = 0
 
-        if self.speed.length() > max_speed:
-            self.speed = (self.speed / self.speed.length()) * max_speed
-        #self.speed = self.speed + avoid_movement
+        for boid in other_boids:
+            if boid != self:
+
+                pos = boid.get_pos_vector()
+                self_pos = self.get_pos_vector()
+
+                distance = pos-self_pos
+                distance_abs = distance.length()
+
+                if distance_abs < self.sight_range:
+
+                    boids_in_range += 1
+
+                    # Match veolocity and group
+                    perceived_velocity = perceived_velocity + boid.speed
+                    perceived_center = perceived_center + pos
+
+                    if distance_abs < 30:
+                        c = c - distance
+
+        # Scale vectors
+        perceived_center = perceived_center / (boids_in_range + 1)
+        #pygame.draw.rect(screen, black, pygame.Rect(perceived_center, [5, 5]))
+
+        perceived_velocity = (perceived_velocity - self.speed) / math.exp(8)
+        perceived_center = (perceived_center - self.get_pos_vector()) / math.exp(9)
+        c = c / 30
+
+        #pygame.draw.circle(self.screen, black, self.get_pos_vector(), self.sight_range, 1)
+
+        self.speed = self.speed + perceived_center + perceived_velocity + c + dodge_movement
+
+        if self.speed.length() > self.max_speed:
+            self.speed.scale_to_length(self.max_speed)
 
 # ==============
 # Simulation vars
@@ -144,8 +140,7 @@ def make_boids(n, width, height):
 
 screen = pygame.display.set_mode(size)
 
-instanser = make_boids(100, screen.get_width(), screen.get_height())
-print (instanser[0].rect[:2])
+instanser = make_boids(n, screen.get_width(), screen.get_height())
 
 running = True
 while running:
@@ -159,7 +154,7 @@ while running:
     for b in instanser:
         pygame.draw.rect(screen, red, b.rect)
 
-        b.update_movement()
+        b.update_movement(instanser)
         b.update()
 
     pygame.display.flip()
