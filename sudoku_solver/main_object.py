@@ -19,18 +19,22 @@ def main(stdscr):
 
     #make board object and init
     bb = board()
-    bb.generate_board(9)
+    bb.generate_board(4, 2)
 
     #make draw obj
-    draw = drawer(stdscr)
+    draw = drawer(stdscr, bb)
 
     #attach draw to board
     bb.attach(draw)
 
-    draw.state = boa
-    bb.state = boa
+    #draw.state = boa
+    #bb.state = boa
 
-    draw.display_all(stdscr)
+    #bb.cell_width = 3
+    #bb.cell_height = 3
+    #bb.side = bb.cell_width * bb.cell_height
+
+    draw.display_all(stdscr, bb.state)
     bb.solve()
 
     stdscr.getch()

@@ -40,19 +40,26 @@ class board(abstract_board):
     Solve Sudoku Methods
     """
 
-    def generate_board(self, n):
+    def generate_board(self, n, m):
         """
-        Set self._state to a n x n matrix with all 0s
+        Set self._state to a n x m matrix with all 0s
+
+        Here n and m represent cell width and height, meaning height and width become n*m. Sudoku must be square?
         """
+
+        self.cell_width = n
+        self.cell_height = m
+
+        self.side = n*m
 
         board = []
 
-        for i in range(n):
+        for i in range(self.side):
 
             #make nth column
             column = []
 
-            for j in range(n):
+            for j in range(self.side):
 
                 #add value k to nth colum
                 column.append(0)
@@ -63,29 +70,29 @@ class board(abstract_board):
 
         self.state = board
 
-
-
-    def check(self, board, row, col, num):
+    def check(self, row, col, num):
         """
         Check if num at given location is valid. Does not check entire board, only relevant rows and columns.
+
+        Works since i dont place the num before checking
         """
 
         #check if row and col legal
-        for i in range(len(board)):
+        for i in range(self.side):
 
-            if board[row][i] == num or board[i][col] == num:
+            if self.state[row][i] == num or self.state[i][col] == num:
 
                 return False
 
         #check if cell legal
-        #TODO see how to make general form of sudoku other than 9x9
-        #finner hvor man skal starte med indeks
-        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
-        for i in range(3):
+        start_row = self.cell_height * (row // self.cell_height)
+        start_col = self.cell_width * (col // self.cell_width)
 
-            for j in range(3):
+        for i in range(self.cell_height):
 
-                if board[start_row + i][start_col + j] == num:
+            for j in range(self.cell_width):
+
+                if self.state[start_row + i][start_col + j] == num:
 
                     return False
 
@@ -97,21 +104,18 @@ class board(abstract_board):
         Recusrive backtracking algorithm that solves the soduko. Updates Observers on board change Only looks at empty cells and does not overwrite existing data.
         """
 
-        #TODO different iteration counts if board not normal size
-        iter = len(self.state)
 
-        for row in range(iter):
+        for row in range(self.side):
 
-            for col in range(iter):
+            for col in range(self.side):
 
                 if self.state[row][col] == 0:
 
                     #test values 0-10
-                    #TODO find way to have more than 10 numbers
-                    for num in range(1,10):
+                    for num in range(1, self.side + 1):
 
                         #check if given num is legal
-                        if self.check(self.state, row, col, num):
+                        if self.check(row, col, num):
 
                             #set cell to be num
                             self.state[row][col] = num
@@ -130,5 +134,5 @@ class board(abstract_board):
                             self.notify(row, col, 0)
 
                     return False
-        
+
         return True

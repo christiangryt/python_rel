@@ -5,14 +5,19 @@ import time
 
 class drawer(abstract_drawer):
 
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, board_obj):
         """
         Store stdscr in object
+
+        Perhaps janky but easier ish
         """
         self.stdscr = stdscr
         curses.curs_set(0)
         self.stdscr.clear()
 
+        self.cell_width = board_obj.cell_width
+        self.cell_height = board_obj.cell_height
+        self.side = board_obj.side
 
     def update(self, row, col, num):
         """"
@@ -31,7 +36,7 @@ class drawer(abstract_drawer):
         """
         # # Clear screen
         # stdscr.clear()
-        
+
         # Set up colors
         curses.start_color()
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -43,36 +48,33 @@ class drawer(abstract_drawer):
         #sudoku size
         #TODO make variable not static
         grid_height = 9 * 1 - 1
-        grid_width = 9 * 2 - 1
+        grid_width = (9 * 2 - 1)*2
 
         start_y = (screen_height - grid_height) // 2
         start_x = (screen_width - grid_width) // 2
 
         #x and y values to make grid
-        x = col // 3 * 2 + col 
-        y = row // 3 + row
+        x = (col // self.cell_width + col) * 2
+        y = row // self.cell_height + row
 
-        # x += col + 2 if col % 3 == 0 and col != 0 else 0
-        # y += row + 2 if row % 3 == 0 and row != 0 else 0
-
-        #num to be printed "." if 0 
+        #num to be printed "." if 0
         if num == 0:
             num = "."
 
 
         # Print colored text
-        stdscr.addstr(start_y + y, start_x + x * 2, str(num), curses.color_pair(1))
-        
+        stdscr.addstr(start_y + y, start_x + x, str(num), curses.color_pair(1))
+
         # Refresh the screen to show changes
         stdscr.refresh()
 
-    def display_all(self,stdscr):
+    def display_all(self,stdscr, board):
         """
         Display all characters from board
         """
 
-        #Loop through self.state
-        for i, y in enumerate(self.state):
+        # Print entire board
+        for i, y in enumerate(board):
 
             for j, x in enumerate(y):
 
