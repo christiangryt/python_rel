@@ -48,7 +48,8 @@ class drawer(abstract_drawer):
         #sudoku size
         #TODO make variable not static
         grid_height = 9 * 1 - 1
-        grid_width = (9 * 2 - 1)*2
+        #grid_width = (9 * 2 - 1)*2
+        grid_width = ((self.cell_width + 2) * self.cell_height - 2)*2
 
         start_y = (screen_height - grid_height) // 2
         start_x = (screen_width - grid_width) // 2

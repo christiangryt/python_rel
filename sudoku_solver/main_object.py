@@ -19,7 +19,7 @@ def main(stdscr):
 
     #make board object and init
     bb = board()
-    bb.generate_board(4, 2)
+    bb.generate_board(3, 4)
 
     #make draw obj
     draw = drawer(stdscr, bb)
