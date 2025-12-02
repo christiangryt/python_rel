@@ -1,3 +1,5 @@
+import re
+
 def parse_input(arg):
     start, end = arg.split("-")
     return int(start), int(end)
@@ -10,15 +12,31 @@ def find_repeated(start, end):
 
         streng_n = str(n)
         lengde_streng_n = len(streng_n)
+        max_window_size = lengde_streng_n // 2 + 1
 
-        for i in range(1, lengde_streng_n // 2 + 1):
+        for i in range(1, max_window_size):
 
-            antall_del_ord = lengde_streng_n % i
+            gor_opp = lengde_streng_n % i
+            if gor_opp == 0:
 
-            suspect = streng_n[:i]
+                suspect = re.findall(i * '.', streng_n)
 
-            print(suspect)
+                suspect_set = set(suspect)
 
+                if len(suspect_set) == 1:
+                    s += n
+                    break
     return s
 
-find_repeated(95, 105)
+with open('data.txt') as f:
+
+    ss = 0
+
+    rad = f.readline()
+    id = rad.split(",")
+
+    for i in id:
+        start, slutt = parse_input(i)
+        ss += find_repeated(start, slutt)
+
+    print(ss)
